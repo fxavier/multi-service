@@ -1,0 +1,255 @@
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --sidebar-width: 240px;
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  
+  /* Nova paleta de cores para Moçambique com #FF6900 como primary */
+  --primary: oklch(0.62 0.25 30); /* #FF6900 - Laranja vibrante */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.45 0.15 250); /* #1E40AF - Azul profundo */
+  --secondary-foreground: oklch(1 0 0);
+  --accent: oklch(0.65 0.18 160); /* #10B981 - Verde esmeralda */
+  --accent-foreground: oklch(1 0 0);
+  --neutral: oklch(0.55 0.02 240); /* #64748B - Cinza azulado */
+  
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: var(--neutral);
+  --destructive: oklch(0.62 0.25 30); /* #FF6900 - Mesma cor para destrutivos */
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: var(--primary);
+  
+  /* Cores para gráficos adaptadas */
+  --chart-1: var(--primary);
+  --chart-2: var(--secondary);
+  --chart-3: var(--accent);
+  --chart-4: oklch(0.7 0.15 60); /* Amarelo dourado */
+  --chart-5: oklch(0.6 0.2 320); /* Rosa coral */
+  
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: var(--primary);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  
+  /* Cores primárias no modo escuro */
+  --primary: oklch(0.67 0.25 30); /* #FF6900 mais claro no escuro */
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.55 0.15 250); /* Azul mais claro no escuro */
+  --secondary-foreground: oklch(1 0 0);
+  --accent: oklch(0.7 0.18 160); /* Verde mais claro no escuro */
+  --accent-foreground: oklch(0.145 0 0);
+  
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --destructive: oklch(0.67 0.25 30); /* #FF6900 mais claro no modo escuro */
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--primary);
+  
+  /* Cores para gráficos no modo escuro */
+  --chart-1: var(--primary);
+  --chart-2: var(--secondary);
+  --chart-3: var(--accent);
+  --chart-4: oklch(0.75 0.15 60);
+  --chart-5: oklch(0.65 0.2 320);
+  
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--primary);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Gradientes personalizados para Moçambique com #FF6900 */
+@layer utilities {
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #FF6900 0%, #FF8533 100%);
+  }
+  
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  }
+  
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  }
+  
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, #FF6900 0%, #1E40AF 50%, #10B981 100%);
+  }
+  
+  .bg-gradient-card {
+    background: linear-gradient(145deg, rgba(255, 105, 0, 0.1) 0%, rgba(30, 64, 175, 0.05) 100%);
+  }
+  
+  .bg-gradient-button {
+    background: linear-gradient(135deg, #FF6900 0%, #FF8533 100%);
+  }
+  
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #FF6900 0%, #FF8533 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-secondary {
+    background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-accent {
+    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .border-gradient-primary {
+    border-image: linear-gradient(135deg, #FF6900 0%, #FF8533 100%) 1;
+  }
+  
+  .shadow-primary {
+    box-shadow: 0 4px 14px 0 rgba(255, 105, 0, 0.15);
+  }
+  
+  .shadow-secondary {
+    box-shadow: 0 4px 14px 0 rgba(30, 64, 175, 0.15);
+  }
+  
+  .shadow-accent {
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.15);
+  }
+  
+  .shadow-button {
+    box-shadow: 0 4px 14px 0 rgba(255, 105, 0, 0.15);
+  }
+  
+  /* Classe personalizada para botões com #FF6900 */
+  .btn-orange {
+    background-color: #FF6900;
+    color: white;
+    border: none;
+  }
+  
+  .btn-orange:hover {
+    background-color: #E55A00;
+  }
+  
+  .btn-orange:active {
+    background-color: #CC5100;
+  }
+}
+
+/* Sobrescrever cores de botões para usar #FF6900 */
+@layer components {
+  .btn-primary {
+    background-color: #FF6900 !important;
+    border-color: #FF6900 !important;
+    color: white !important;
+  }
+  
+  .btn-primary:hover {
+    background-color: #E55A00 !important;
+    border-color: #E55A00 !important;
+  }
+  
+  .btn-primary:active {
+    background-color: #CC5100 !important;
+    border-color: #CC5100 !important;
+  }
+  
+  .btn-destructive {
+    background-color: #FF6900 !important;
+    border-color: #FF6900 !important;
+    color: white !important;
+  }
+  
+  .btn-destructive:hover {
+    background-color: #E55A00 !important;
+    border-color: #E55A00 !important;
+  }
+  
+  .btn-destructive:active {
+    background-color: #CC5100 !important;
+    border-color: #CC5100 !important;
+  }
+}

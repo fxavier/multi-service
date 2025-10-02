@@ -1,0 +1,353 @@
+
+'use client';
+
+import { useState } from 'react';
+import { CreditCard, Truck, MapPin, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { useCarrinho } from '@/contexts/CarrinhoContext';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+
+export default function CheckoutContent() {
+  const { itens, subtotal, limparCarrinho } = useCarrinho();
+  const router = useRouter();
+  
+  const [dadosCliente, setDadosCliente] = useState({
+    nome: '',
+    telefone: '',
+    email: '',
+    endereco: '',
+    cidade: '',
+    cep: '',
+    observacoes: ''
+  });
+  
+  const [tipoEntrega, setTipoEntrega] = useState('entrega');
+  const [metodoPagamento, setMetodoPagamento] = useState('cartao');
+
+  const taxaEntrega = tipoEntrega === 'entrega' ? 5.99 : 0;
+  const total = subtotal + taxaEntrega;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!dadosCliente.nome || !dadosCliente.telefone || !dadosCliente.email) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (tipoEntrega === 'entrega' && !dadosCliente.endereco) {
+      toast.error('Endereço é obrigatório para entrega');
+      return;
+    }
+
+    // Simular processamento do pedido
+    const numeroPedido = `PED${Date.now()}`;
+    
+    const pedido = {
+      id: Date.now().toString(),
+      numero: numeroPedido,
+      itens,
+      ...dadosCliente,
+      metodoPagamento,
+      tipoEntrega,
+      subtotal,
+      taxaEntrega,
+      total,
+      status: 'pendente' as const,
+      dataHora: new Date().toISOString()
+    };
+
+    // Salvar pedido no localStorage
+    const pedidos = JSON.parse(localStorage.getItem('marketplace-pedidos') || '[]');
+    pedidos.push(pedido);
+    localStorage.setItem('marketplace-pedidos', JSON.stringify(pedidos));
+
+    // Limpar carrinho
+    limparCarrinho();
+
+    toast.success('Pedido realizado com sucesso!');
+    router.push(`/pedido-confirmado?numero=${numeroPedido}`);
+  };
+
+  if (itens.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-muted-foreground mb-4">Seu carrinho está vazio.</p>
+            <Button onClick={() => router.push('/merchants')}>
+              Continuar Comprando
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Finalizar Pedido</h1>
+        <p className="text-muted-foreground">
+          Revise seus dados e confirme seu pedido
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Formulário */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Dados do Cliente */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Dados do Cliente</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nome">Nome Completo *</Label>
+                    <Input
+                      id="nome"
+                      value={dadosCliente.nome}
+                      onChange={(e) => setDadosCliente(prev => ({ ...prev, nome: e.target.value }))}
+                      placeholder="Seu nome completo"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="telefone">Telefone *</Label>
+                    <Input
+                      id="telefone"
+                      value={dadosCliente.telefone}
+                      onChange={(e) => setDadosCliente(prev => ({ ...prev, telefone: e.target.value }))}
+                      placeholder="(11) 99999-9999"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="email">E-mail *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={dadosCliente.email}
+                    onChange={(e) => setDadosCliente(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="seu@email.com"
+                    required
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tipo de Entrega */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tipo de Entrega</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup value={tipoEntrega} onValueChange={setTipoEntrega}>
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="entrega" id="entrega" />
+                    <Label htmlFor="entrega" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Truck className="h-5 w-5" />
+                        <div>
+                          <p className="font-medium">Entrega</p>
+                          <p className="text-sm text-muted-foreground">
+                            Receba em casa - R$ {taxaEntrega.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="retirada" id="retirada" />
+                    <Label htmlFor="retirada" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-5 w-5" />
+                        <div>
+                          <p className="font-medium">Retirada</p>
+                          <p className="text-sm text-muted-foreground">
+                            Retire no local - Grátis
+                          </p>
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
+            {/* Endereço (se entrega) */}
+            {tipoEntrega === 'entrega' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Endereço de Entrega</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="endereco">Endereço Completo *</Label>
+                    <Input
+                      id="endereco"
+                      value={dadosCliente.endereco}
+                      onChange={(e) => setDadosCliente(prev => ({ ...prev, endereco: e.target.value }))}
+                      placeholder="Rua, número, complemento"
+                      required={tipoEntrega === 'entrega'}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="cidade">Cidade</Label>
+                      <Input
+                        id="cidade"
+                        value={dadosCliente.cidade}
+                        onChange={(e) => setDadosCliente(prev => ({ ...prev, cidade: e.target.value }))}
+                        placeholder="Sua cidade"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cep">CEP</Label>
+                      <Input
+                        id="cep"
+                        value={dadosCliente.cep}
+                        onChange={(e) => setDadosCliente(prev => ({ ...prev, cep: e.target.value }))}
+                        placeholder="00000-000"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Método de Pagamento */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Método de Pagamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup value={metodoPagamento} onValueChange={setMetodoPagamento}>
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="cartao" id="cartao" />
+                    <Label htmlFor="cartao" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="h-5 w-5" />
+                        <div>
+                          <p className="font-medium">Cartão de Crédito/Débito</p>
+                          <p className="text-sm text-muted-foreground">
+                            Visa, Mastercard, Elo
+                          </p>
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="pix" id="pix" />
+                    <Label htmlFor="pix" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5" />
+                        <div>
+                          <p className="font-medium">PIX</p>
+                          <p className="text-sm text-muted-foreground">
+                            Pagamento instantâneo
+                          </p>
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="dinheiro" id="dinheiro" />
+                    <Label htmlFor="dinheiro" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <div className="h-5 w-5 rounded-full bg-green-600" />
+                        <div>
+                          <p className="font-medium">Dinheiro</p>
+                          <p className="text-sm text-muted-foreground">
+                            Pagamento na entrega/retirada
+                          </p>
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
+            {/* Observações */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Observações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={dadosCliente.observacoes}
+                  onChange={(e) => setDadosCliente(prev => ({ ...prev, observacoes: e.target.value }))}
+                  placeholder="Informações adicionais sobre seu pedido..."
+                  rows={3}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Resumo do Pedido */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
+              <CardHeader>
+                <CardTitle>Resumo do Pedido</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Itens */}
+                <div className="space-y-2">
+                  {itens.map((item) => (
+                    <div key={item.id} className="flex justify-between text-sm">
+                      <span>{item.quantidade}x {item.nome}</span>
+                      <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <Separator />
+                
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>R$ {subtotal.toFixed(2)}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span>Taxa de Entrega</span>
+                  <span>R$ {taxaEntrega.toFixed(2)}</span>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span className="text-primary">R$ {total.toFixed(2)}</span>
+                </div>
+                
+                <Button type="submit" className="w-full" size="lg">
+                  Confirmar Pedido
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  Ao confirmar, você concorda com nossos termos de uso
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
