@@ -189,7 +189,7 @@ export default function DashboardPrestador() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Faturamento Total</p>
-                <p className="text-2xl font-bold">R$ {totalFaturamento.toFixed(2)}</p>
+                <p className="text-2xl font-bold">MT {totalFaturamento.toFixed(2)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-500" />
             </div>
@@ -258,7 +258,7 @@ export default function DashboardPrestador() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="preco">Preço (R$) *</Label>
+                          <Label htmlFor="preco">Preço (MT) *</Label>
                           <Input
                             id="preco"
                             type="number"

@@ -188,7 +188,7 @@ export default function DashboardMerchant() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total de Vendas</p>
-                <p className="text-2xl font-bold">R$ {totalVendas.toFixed(2)}</p>
+                <p className="text-2xl font-bold">MT {totalVendas.toFixed(2)}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
@@ -257,7 +257,7 @@ export default function DashboardMerchant() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="preco">Preço (R$) *</Label>
+                          <Label htmlFor="preco">Preço (MT) *</Label>
                           <Input
                             id="preco"
                             type="number"

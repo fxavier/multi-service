@@ -99,7 +99,7 @@ export default function CadastroPrestador() {
 
   const validarEtapa3 = () => {
     if (!formData.cpf) {
-      toast.error('CPF é obrigatório');
+      toast.error('NUIT é obrigatório');
       return false;
     }
     if (!formData.aceitaTermos) {
@@ -188,7 +188,7 @@ export default function CadastroPrestador() {
             id="telefone"
             value={formData.telefone}
             onChange={(e) => handleInputChange('telefone', e.target.value)}
-            placeholder="(11) 99999-9999"
+            placeholder="(258) 9999999"
           />
         </div>
 
@@ -292,18 +292,18 @@ export default function CadastroPrestador() {
             />
           </div>
           <div>
-            <Label htmlFor="cep">CEP</Label>
+            <Label htmlFor="cep">Caixa Postal</Label>
             <Input
               id="cep"
               value={formData.cep}
               onChange={(e) => handleInputChange('cep', e.target.value)}
-              placeholder="00000-000"
+              placeholder="00000"
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="precoBase">Preço Base por Hora (R$)</Label>
+          <Label htmlFor="precoBase">Preço Base por Hora (MT)</Label>
           <Input
             id="precoBase"
             type="number"
@@ -341,16 +341,16 @@ export default function CadastroPrestador() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="cpf">CPF *</Label>
+          <Label htmlFor="cpf">BI *</Label>
           <Input
             id="cpf"
             value={formData.cpf}
             onChange={(e) => handleInputChange('cpf', e.target.value)}
-            placeholder="000.000.000-00"
+            placeholder="00000000000"
           />
         </div>
 
-        <div>
+       {/*  <div>
           <Label htmlFor="rg">RG</Label>
           <Input
             id="rg"
@@ -358,7 +358,7 @@ export default function CadastroPrestador() {
             onChange={(e) => handleInputChange('rg', e.target.value)}
             placeholder="00.000.000-0"
           />
-        </div>
+        </div> */}
 
         <div className="space-y-4 border-t pt-4">
           <div>
@@ -369,7 +369,7 @@ export default function CadastroPrestador() {
                 Faça upload de documentos e fotos dos seus trabalhos
               </p>
               <Button variant="outline" size="sm">
-                Selecionar Arquivos
+                Selecionar Ficheiros
               </Button>
             </div>
           </div>

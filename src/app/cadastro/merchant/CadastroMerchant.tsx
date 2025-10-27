@@ -73,7 +73,7 @@ export default function CadastroMerchant() {
 
   const validarEtapa3 = () => {
     if (!formData.cnpj) {
-      toast.error('CNPJ é obrigatório');
+      toast.error('NUIT é obrigatório');
       return false;
     }
     if (!formData.aceitaTermos) {
@@ -164,7 +164,7 @@ export default function CadastroMerchant() {
             id="telefone"
             value={formData.telefone}
             onChange={(e) => handleInputChange('telefone', e.target.value)}
-            placeholder="(11) 99999-9999"
+            placeholder="(258) 84 9999999"
           />
         </div>
 
@@ -257,12 +257,12 @@ export default function CadastroMerchant() {
             />
           </div>
           <div>
-            <Label htmlFor="cep">CEP</Label>
+            <Label htmlFor="cep">Caixa Postal</Label>
             <Input
               id="cep"
               value={formData.cep}
               onChange={(e) => handleInputChange('cep', e.target.value)}
-              placeholder="00000-000"
+              placeholder="00000"
             />
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function CadastroMerchant() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="taxaEntrega">Taxa de Entrega (R$)</Label>
+                  <Label htmlFor="taxaEntrega">Taxa de Entrega (MT)</Label>
                   <Input
                     id="taxaEntrega"
                     type="number"
@@ -335,17 +335,17 @@ export default function CadastroMerchant() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="cnpj">CNPJ *</Label>
+          <Label htmlFor="cnpj">NUIT *</Label>
           <Input
             id="cnpj"
             value={formData.cnpj}
             onChange={(e) => handleInputChange('cnpj', e.target.value)}
-            placeholder="00.000.000/0000-00"
+            placeholder="000000000"
           />
         </div>
 
         <div>
-          <Label htmlFor="inscricaoEstadual">Inscrição Estadual</Label>
+          <Label htmlFor="inscricaoEstadual">Alvará</Label>
           <Input
             id="inscricaoEstadual"
             value={formData.inscricaoEstadual}
@@ -363,7 +363,7 @@ export default function CadastroMerchant() {
                 Faça upload dos documentos necessários
               </p>
               <Button variant="outline" size="sm">
-                Selecionar Arquivos
+                Selecionar Ficheiros
               </Button>
             </div>
           </div>
