@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -8,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useCarrinho } from '@/contexts/CarrinhoContext';
 import Link from 'next/link';
+import { selectTotalItens } from '@/store/slices/cartSlice';
+import { useAppSelector } from '@/store/hooks';
 
 export default function Header() {
   const [menuAberto, setMenuAberto] = useState(false);
   const [busca, setBusca] = useState('');
-  const { totalItens } = useCarrinho();
+  const totalItens = useAppSelector(selectTotalItens);
 
   const navegacao = [
     { nome: 'Início', href: '/' },
@@ -99,8 +99,8 @@ export default function Header() {
               <Button variant="ghost" size="icon" className="relative hover:bg-accent/10">
                 <ShoppingCart className="h-5 w-5 text-accent" />
                 {totalItens > 0 && (
-                  <Badge 
-                    variant="destructive" 
+                  <Badge
+                    variant="destructive"
                     className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-gradient-primary border-0"
                   >
                     {totalItens}
@@ -152,7 +152,7 @@ export default function Header() {
                   {item.nome}
                 </Link>
               ))}
-              
+
               <div className="border-t pt-3 space-y-2">
                 <Link
                   href="/cadastro/merchant"
@@ -171,7 +171,7 @@ export default function Header() {
                   Cadastrar como Prestador
                 </Link>
               </div>
-              
+
               <Button variant="ghost" size="sm" className="justify-start hover:bg-primary/10">
                 <MapPin className="h-4 w-4 mr-2 text-primary" />
                 <span className="text-sm">Maputo, MZ</span>

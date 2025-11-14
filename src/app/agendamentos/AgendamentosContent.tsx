@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,9 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { prestadores } from '@/data/prestadores';
-import { servicos } from '@/data/servicos';
 import Link from 'next/link';
+import { useGetPrestadoresQuery, useGetServicosQuery } from '@/store/api';
 
 interface Agendamento {
   id: string;
@@ -28,6 +26,8 @@ interface Agendamento {
 
 export default function AgendamentosContent() {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const { data: prestadores } = useGetPrestadoresQuery();
+  const { data: servicos } = useGetServicosQuery();
 
   useEffect(() => {
     const agendamentosSalvos = localStorage.getItem('marketplace-agendamentos');
@@ -60,8 +60,8 @@ export default function AgendamentosContent() {
   };
 
   const AgendamentoCard = ({ agendamento }: { agendamento: Agendamento }) => {
-    const prestador = prestadores.find(p => p.id === agendamento.prestadorId);
-    const servico = servicos.find(s => s.id === agendamento.servicoId);
+    const prestador = prestadores?.find(p => p.id === agendamento.prestadorId);
+    const servico = servicos?.find(s => s.id === agendamento.servicoId);
 
     if (!prestador || !servico) return null;
 
@@ -74,7 +74,7 @@ export default function AgendamentosContent() {
               alt={prestador.nome}
               className="w-16 h-16 rounded-full object-cover"
             />
-            
+
             <div className="flex-1">
               <div className="flex items-start justify-between mb-2">
                 <div>
@@ -91,22 +91,22 @@ export default function AgendamentosContent() {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>{new Date(agendamento.data).toLocaleDateString('pt-BR')}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span>{agendamento.horario}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span>{agendamento.clienteNome}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span>{agendamento.clienteTelefone}</span>
                 </div>
-                
+
                 {agendamento.endereco && (
                   <div className="flex items-center gap-2 md:col-span-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -126,7 +126,7 @@ export default function AgendamentosContent() {
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   <span className="text-sm">{prestador.avaliacao}</span>
                 </div>
-                
+
                 <div className="text-right">
                   <p className="text-lg font-bold text-primary">
                     R$ {agendamento.precoTotal.toFixed(2)}
@@ -198,41 +198,18 @@ export default function AgendamentosContent() {
         </TabsList>
 
         <TabsContent value="ativos">
-          <div className="space-y-6">
-            {agendamentosAtivos.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">
-                    Nenhum agendamento ativo encontrado.
-                  </p>
-                  <Link href="/servicos">
-                    <Button>Agendar Serviço</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              agendamentosAtivos.map((agendamento) => (
-                <AgendamentoCard key={agendamento.id} agendamento={agendamento} />
-              ))
-            )}
+          <div className="space-y-4">
+            {agendamentosAtivos.map((agendamento) => (
+              <AgendamentoCard key={agendamento.id} agendamento={agendamento} />
+            ))}
           </div>
         </TabsContent>
 
         <TabsContent value="historico">
-          <div className="space-y-6">
-            {agendamentosHistorico.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">
-                    Nenhum agendamento no histórico.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              agendamentosHistorico.map((agendamento) => (
-                <AgendamentoCard key={agendamento.id} agendamento={agendamento} />
-              ))
-            )}
+          <div className="space-y-4">
+            {agendamentosHistorico.map((agendamento) => (
+              <AgendamentoCard key={agendamento.id} agendamento={agendamento} />
+            ))}
           </div>
         </TabsContent>
       </Tabs>
