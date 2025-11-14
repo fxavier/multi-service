@@ -367,15 +367,15 @@ export default function DashboardMerchant() {
                         {produto.precoPromocional ? (
                           <div>
                             <p className="text-lg font-bold text-primary">
-                              R$ {produto.precoPromocional.toFixed(2)}
+                              MZN {produto.precoPromocional.toFixed(2)}
                             </p>
                             <p className="text-sm text-muted-foreground line-through">
-                              R$ {produto.preco.toFixed(2)}
+                              MZN {produto.preco.toFixed(2)}
                             </p>
                           </div>
                         ) : (
                           <p className="text-lg font-bold text-primary">
-                            R$ {produto.preco.toFixed(2)}
+                            MZN {produto.preco.toFixed(2)}
                           </p>
                         )}
                         {produto.estoque !== undefined && (
@@ -445,7 +445,7 @@ export default function DashboardMerchant() {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="text-lg font-bold text-primary">
-                            R$ {pedido.total.toFixed(2)}
+                            MZN {pedido.total.toFixed(2)}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(pedido.dataHora).toLocaleString('pt-BR')}

@@ -265,15 +265,15 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
                           {typeof produto.precoPromocional === 'number' ? (
                             <div>
                               <span className="text-lg font-bold text-primary">
-                                R$ {produto.precoPromocional.toFixed(2)}
+                                MZN {produto.precoPromocional.toFixed(2)}
                               </span>
                               <span className="text-sm text-muted-foreground line-through ml-2">
-                                R$ {produto.preco.toFixed(2)}
+                                MZN {produto.preco.toFixed(2)}
                               </span>
                             </div>
                           ) : (
                             <span className="text-lg font-bold text-primary">
-                              R$ {produto.preco.toFixed(2)}
+                              MZN {produto.preco.toFixed(2)}
                             </span>
                           )}
                         </div>
@@ -343,7 +343,7 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
                     <div>
                       <h3 className="font-semibold mb-2">Taxa de Entrega</h3>
                       <p className="text-muted-foreground">
-                        {merchant.entregaGratis ? 'Grátis' : `R$ ${merchant.taxaEntrega.toFixed(2)}`}
+                        {merchant.entregaGratis ? 'Grátis' : `MZN ${merchant.taxaEntrega.toFixed(2)}`}
                       </p>
                     </div>
                   )}

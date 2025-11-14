@@ -124,7 +124,7 @@ export default function AgendamentosContent() {
 
                 <div className="text-right">
                   <p className="text-lg font-bold text-primary">
-                    R$ {agendamento.precoTotal.toFixed(2)}
+                    MZN {agendamento.precoTotal.toFixed(2)}
                   </p>
                   <p className="text-sm text-muted-foreground">{servico.duracao || 'Consultar'}</p>
                 </div>

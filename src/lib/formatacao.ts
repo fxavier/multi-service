@@ -3,18 +3,25 @@
  * Utilitários de formatação para Moçambique
  */
 
+const formatadorMetical = new Intl.NumberFormat('pt-MZ', {
+  style: 'currency',
+  currency: 'MZN',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 /**
  * Formata valores monetários em Meticais Moçambicanos
  */
 export function formatarMoeda(valor: number): string {
-  return `${valor.toFixed(2).replace('.', ',')} MT`;
+  return formatadorMetical.format(valor);
 }
 
 /**
- * Formata valores monetários simples (apenas número + MT)
+ * Formata valores monetários simples (apenas número + código da moeda)
  */
 export function formatarMoedaSimples(valor: number): string {
-  return `${valor.toFixed(2).replace('.', ',')} MT`;
+  return `MZN ${valor.toFixed(2).replace('.', ',')}`;
 }
 
 /**

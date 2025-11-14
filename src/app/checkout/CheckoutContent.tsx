@@ -168,7 +168,7 @@ export default function CheckoutContent() {
                         <div>
                           <p className="font-medium">Entrega</p>
                           <p className="text-sm text-muted-foreground">
-                            Receba em casa - R$ {taxaEntrega.toFixed(2)}
+                            Receba em casa - MZN {taxaEntrega.toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -297,19 +297,19 @@ export default function CheckoutContent() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>R$ {subtotal.toFixed(2)}</span>
+                  <span>MZN {subtotal.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span>Taxa de Entrega</span>
-                  <span>R$ {taxaEntrega.toFixed(2)}</span>
+                  <span>MZN {taxaEntrega.toFixed(2)}</span>
                 </div>
 
                 <Separator />
 
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
-                  <span className="text-primary">R$ {total.toFixed(2)}</span>
+                  <span className="text-primary">MZN {total.toFixed(2)}</span>
                 </div>
 
                 <Button type="submit" className="w-full" size="lg">

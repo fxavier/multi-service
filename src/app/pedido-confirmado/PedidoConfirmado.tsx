@@ -101,7 +101,7 @@ export default function PedidoConfirmado() {
                 {pedido.itens.map((item: any) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span>{item.quantidade}x {item.nome}</span>
-                    <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
+                    <span>MZN {(item.preco * item.quantidade).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -125,9 +125,9 @@ export default function PedidoConfirmado() {
               <h3 className="font-medium mb-2">Pagamento</h3>
               <div className="text-sm space-y-1">
                 <p><strong>Método:</strong> {pedido.metodoPagamento}</p>
-                <p><strong>Subtotal:</strong> R$ {pedido.subtotal.toFixed(2)}</p>
-                <p><strong>Taxa de Entrega:</strong> R$ {pedido.taxaEntrega.toFixed(2)}</p>
-                <p><strong>Total:</strong> R$ {pedido.total.toFixed(2)}</p>
+                <p><strong>Subtotal:</strong> MZN {pedido.subtotal.toFixed(2)}</p>
+                <p><strong>Taxa de Entrega:</strong> MZN {pedido.taxaEntrega.toFixed(2)}</p>
+                <p><strong>Total:</strong> MZN {pedido.total.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>

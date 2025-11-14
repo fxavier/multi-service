@@ -219,7 +219,7 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                 <span className="text-2xl font-bold text-primary">
                   A partir de{' '}
                   {typeof prestador.precoBase === 'number'
-                    ? `R$ ${prestador.precoBase.toFixed(2)}`
+                    ? `MZN ${prestador.precoBase.toFixed(2)}`
                     : 'Consultar'}
                 </span>
               </div>
@@ -245,7 +245,7 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                         <SelectContent>
                           {servicosPrestador.map(servico => (
                             <SelectItem key={servico.id} value={servico.id}>
-                              {servico.nome} - R$ {servico.preco.toFixed(2)}
+                              {servico.nome} - MZN {servico.preco.toFixed(2)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -363,7 +363,7 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">A partir de</p>
-                      <p className="text-xl font-semibold text-primary">R$ {servico.preco.toFixed(2)}</p>
+                      <p className="text-xl font-semibold text-primary">MZN {servico.preco.toFixed(2)}</p>
                     </div>
                   </div>
                   <Button className="w-full" onClick={() => adicionarAoCarrinho(servico)}>

@@ -303,7 +303,7 @@ export default function MerchantsContent() {
                         ) : taxaEntrega !== undefined ? (
                           <div className="flex items-center">
                             <Truck className="h-4 w-4 mr-1" />
-                            R$ {taxaEntrega.toFixed(2)}
+                            MZN {taxaEntrega.toFixed(2)}
                           </div>
                         ) : (
                           <div className="flex items-center">
