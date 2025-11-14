@@ -22,27 +22,29 @@ export default function MerchantsContent() {
   const { data: merchants, isLoading, isError } = useGetMerchantsQuery();
 
   const merchantsFiltrados = useMemo(() => {
-    let resultado = (merchants ?? []).filter(merchant => merchant.ativo);
+    let resultado = (merchants ?? []).filter((merchant) => merchant.ativo ?? true);
 
     if (busca) {
-      resultado = resultado.filter(merchant =>
-        merchant.nome.toLowerCase().includes(busca.toLowerCase()) ||
-        merchant.descricao.toLowerCase().includes(busca.toLowerCase())
-      );
+      const termo = busca.toLowerCase();
+      resultado = resultado.filter((merchant) => {
+        const nome = merchant.nome?.toLowerCase() ?? '';
+        const descricao = merchant.descricao?.toLowerCase() ?? '';
+        return nome.includes(termo) || descricao.includes(termo);
+      });
     }
 
     if (tipoFiltro) {
-      resultado = resultado.filter(merchant => merchant.tipo === tipoFiltro);
+      resultado = resultado.filter((merchant) => merchant.tipo === tipoFiltro);
     }
 
     if (avaliacaoFiltro) {
       const minAvaliacao = parseFloat(avaliacaoFiltro);
-      resultado = resultado.filter(merchant => merchant.avaliacao >= minAvaliacao);
+      resultado = resultado.filter((merchant) => (merchant.avaliacao ?? 0) >= minAvaliacao);
     }
 
     switch (ordenacao) {
       case 'avaliacao':
-        resultado = [...resultado].sort((a, b) => b.avaliacao - a.avaliacao);
+        resultado = [...resultado].sort((a, b) => (b.avaliacao ?? 0) - (a.avaliacao ?? 0));
         break;
       case 'nome':
         resultado = [...resultado].sort((a, b) => a.nome.localeCompare(b.nome));
@@ -52,7 +54,7 @@ export default function MerchantsContent() {
         resultado = [...resultado].sort((a, b) => {
           if (a.destaque && !b.destaque) return -1;
           if (!a.destaque && b.destaque) return 1;
-          return b.avaliacao - a.avaliacao;
+          return (b.avaliacao ?? 0) - (a.avaliacao ?? 0);
         });
         break;
     }
@@ -208,18 +210,35 @@ export default function MerchantsContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {merchantsFiltrados.map((merchant) => (
-            <Link key={merchant.id} href={`/merchants/${merchant.slug}`}>
+          {merchantsFiltrados.map((merchant) => {
+            const descricao = merchant.descricao || 'Descrição não disponível.';
+            const avaliacao = merchant.avaliacao ?? 0;
+            const totalAvaliacoes = merchant.totalAvaliacoes ?? 0;
+            const tempoEntrega = merchant.tempoEntrega || 'Consultar';
+            const entregaGratis = merchant.entregaGratis ?? false;
+            const taxaEntrega =
+              typeof merchant.taxaEntrega === 'number'
+                ? merchant.taxaEntrega
+                : undefined;
+            const endereco = merchant.endereco || 'Endereço não informado';
+            const slug = merchant.slug || merchant.id;
+
+            return (
+              <Link key={merchant.id} href={`/merchants/${slug}`}>
               <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
                 <CardContent className="p-0">
                   {/* Imagem */}
                   <div className="relative h-48 overflow-hidden rounded-t-lg">
-                    <Image
-                      src={merchant.banner}
-                      alt={merchant.nome}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {merchant.banner ? (
+                      <Image
+                        src={merchant.banner}
+                        alt={merchant.nome}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-muted" />
+                    )}
                     {merchant.destaque && (
                       <Badge className="absolute top-3 left-3 bg-primary">
                         Destaque
@@ -227,12 +246,18 @@ export default function MerchantsContent() {
                     )}
                     <div className="absolute top-3 right-3">
                       <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-white">
-                        <Image
-                          src={merchant.logo}
-                          alt={merchant.nome}
-                          fill
-                          className="object-cover"
-                        />
+                        {merchant.logo ? (
+                          <Image
+                            src={merchant.logo}
+                            alt={merchant.nome}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-primary text-white text-sm font-semibold">
+                            {merchant.nome.charAt(0)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -244,22 +269,22 @@ export default function MerchantsContent() {
                         {merchant.nome}
                       </h3>
                       <Badge variant="secondary" className="text-xs">
-                        {merchant.tipo}
+                        {merchant.tipo || 'Estabelecimento'}
                       </Badge>
                     </div>
 
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {merchant.descricao}
+                      {descricao}
                     </p>
 
                     {/* Avaliação */}
                     <div className="flex items-center space-x-2 mb-3">
                       <div className="flex items-center">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="ml-1 text-sm font-medium">{merchant.avaliacao}</span>
+                        <span className="ml-1 text-sm font-medium">{avaliacao.toFixed(1)}</span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        ({merchant.totalAvaliacoes} avaliações)
+                        ({totalAvaliacoes} avaliações)
                       </span>
                     </div>
 
@@ -267,18 +292,23 @@ export default function MerchantsContent() {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <Clock className="h-4 w-4 mr-1" />
-                        {merchant.tempoEntrega || 'Consultar'}
+                        {tempoEntrega}
                       </div>
                       <div className="flex items-center">
-                        {merchant.entregaGratis ? (
+                        {entregaGratis ? (
                           <Badge variant="default" className="bg-green-600 text-xs">
                             <Truck className="h-3 w-3 mr-1" />
                             Grátis
                           </Badge>
+                        ) : taxaEntrega !== undefined ? (
+                          <div className="flex items-center">
+                            <Truck className="h-4 w-4 mr-1" />
+                            R$ {taxaEntrega.toFixed(2)}
+                          </div>
                         ) : (
                           <div className="flex items-center">
                             <Truck className="h-4 w-4 mr-1" />
-                            R$ {merchant.taxaEntrega?.toFixed(2) || '0,00'}
+                            Consultar
                           </div>
                         )}
                       </div>
@@ -287,13 +317,14 @@ export default function MerchantsContent() {
                     {/* Endereço */}
                     <div className="flex items-center mt-3 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3 mr-1" />
-                      {merchant.endereco}
+                      {endereco}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

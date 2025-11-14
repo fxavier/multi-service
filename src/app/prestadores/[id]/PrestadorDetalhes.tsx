@@ -38,7 +38,9 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
   const dispatch = useAppDispatch();
 
   const { data: prestadores, isLoading: carregandoPrestador } = useGetPrestadoresQuery();
-  const { data: servicos, isLoading: carregandoServicos } = useGetServicosQuery();
+  const { data: servicos, isLoading: carregandoServicos } = useGetServicosQuery(prestadorId, {
+    skip: !prestadorId,
+  });
 
   const prestador = useMemo(
     () => (prestadores ?? []).find((p) => p.id === prestadorId),
@@ -46,7 +48,7 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
   );
 
   const servicosPrestador = useMemo(
-    () => (servicos ?? []).filter((s) => s.prestadorId === prestadorId),
+    () => (servicos ?? []).filter((s) => !s.prestadorId || s.prestadorId === prestadorId),
     [servicos, prestadorId]
   );
 
@@ -99,8 +101,8 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
       nome: servico.nome,
       preco: servico.preco,
       quantidade: 1,
-      imagem: prestador.foto,
-      observacoes: `Prestador: ${prestador.nome}`
+      imagem: prestador.foto || '',
+      observacoes: `Prestador: ${prestador.nome}`,
     }));
     toast.success('Serviço adicionado ao carrinho!');
   };
@@ -148,18 +150,24 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
       <Card className="mb-8">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
-            <img
-              src={prestador.foto}
-              alt={prestador.nome}
-              className="w-32 h-32 rounded-full object-cover mx-auto md:mx-0"
-            />
+            {prestador.foto ? (
+              <img
+                src={prestador.foto}
+                alt={prestador.nome}
+                className="w-32 h-32 rounded-full object-cover mx-auto md:mx-0"
+              />
+            ) : (
+              <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-primary text-3xl font-bold text-white md:mx-0">
+                {prestador.nome.charAt(0)}
+              </div>
+            )}
 
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl font-bold mb-2">{prestador.nome}</h1>
 
               {/* Profissões */}
               <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
-                {prestador.profissoes.map((profissao, index) => (
+                {(prestador.profissoes ?? []).map((profissao, index) => (
                   <Badge key={index} variant="secondary">
                     {profissao}
                   </Badge>
@@ -170,10 +178,10 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
               <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
                 <div className="flex items-center">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold ml-1">{prestador.avaliacao}</span>
+                  <span className="font-semibold ml-1">{(prestador.avaliacao ?? 0).toFixed(1)}</span>
                 </div>
                 <span className="text-muted-foreground">
-                  ({prestador.totalAvaliacoes} avaliações)
+                  ({prestador.totalAvaliacoes ?? 0} avaliações)
                 </span>
               </div>
 
@@ -181,19 +189,23 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{prestador.endereco}</span>
+                  <span>{prestador.endereco || 'Endereço não informado'}</span>
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{prestador.telefone}</span>
+                  <span>{prestador.telefone || 'Telefone não informado'}</span>
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{prestador.email}</span>
+                  <span>{prestador.email || 'E-mail não informado'}</span>
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{prestador.experiencia} de experiência</span>
+                  <span>
+                    {prestador.experiencia
+                      ? `${prestador.experiencia} de experiência`
+                      : 'Experiência a combinar'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -201,7 +213,10 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
             <div className="text-center md:text-right">
               <div className="mb-4">
                 <span className="text-2xl font-bold text-primary">
-                  A partir de R$ {prestador.precoBase.toFixed(2)}
+                  A partir de{' '}
+                  {typeof prestador.precoBase === 'number'
+                    ? `R$ ${prestador.precoBase.toFixed(2)}`
+                    : 'Consultar'}
                 </span>
               </div>
 
@@ -332,15 +347,15 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>{servico.nome}</CardTitle>
-                    <Badge variant="secondary">{servico.categoria}</Badge>
+                    {servico.categoria && <Badge variant="secondary">{servico.categoria}</Badge>}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-muted-foreground">{servico.descricao}</p>
+                  <p className="text-muted-foreground">{servico.descricao || 'Descrição não informada.'}</p>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Duração</p>
-                      <p className="font-medium">{servico.duracao}</p>
+                      <p className="font-medium">{servico.duracao || 'Consultar'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">A partir de</p>
@@ -370,8 +385,13 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
               <CardTitle>Sobre {prestador.nome}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">{prestador.descricao}</p>
-              <p className="text-sm text-muted-foreground">Experiência: {prestador.experiencia}</p>
+              <p className="text-muted-foreground mb-4">
+                {prestador.descricao || 'Descrição não disponível.'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Experiência:{' '}
+                {prestador.experiencia ? `${prestador.experiencia} de experiência` : 'Não informada'}
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

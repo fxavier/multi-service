@@ -24,28 +24,42 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
   const dispatch = useAppDispatch();
 
   const { data: merchants, isLoading: carregandoMerchants } = useGetMerchantsQuery();
-  const { data: produtos, isLoading: carregandoProdutos } = useGetProdutosQuery();
-  const { data: categorias, isLoading: carregandoCategorias } = useGetCategoriasQuery();
-
   const merchant = useMemo(
-    () => (merchants ?? []).find((m) => m.slug === merchantSlug),
+    () => (merchants ?? []).find((m) => m.slug === merchantSlug || m.id === merchantSlug),
     [merchants, merchantSlug]
   );
 
+  const { data: produtos, isLoading: carregandoProdutos } = useGetProdutosQuery(merchant?.id, {
+    skip: !merchant?.id,
+  });
+  const { data: categorias, isLoading: carregandoCategorias } = useGetCategoriasQuery();
+
   const produtosMerchant = useMemo(
-    () => (produtos ?? []).filter((produto) => produto.merchantId === merchant?.id),
+    () => {
+      if (!produtos) return [];
+      if (!merchant?.id) return produtos;
+      if (produtos.some((produto) => produto.merchantId)) {
+        return produtos.filter((produto) => produto.merchantId === merchant.id);
+      }
+      return produtos;
+    },
     [produtos, merchant?.id]
   );
 
   const categoriasMerchant = useMemo(
-    () => (categorias ?? []).filter((categoria) => categoria.merchantId === merchant?.id),
+    () =>
+      (categorias ?? []).filter((categoria) => {
+        if (!merchant?.id) return true;
+        if (!categoria.merchantId) return true;
+        return categoria.merchantId === merchant.id;
+      }),
     [categorias, merchant?.id]
   );
 
   const carregandoDados = carregandoMerchants || carregandoProdutos || carregandoCategorias;
 
   const produtosFiltrados = useMemo(() => {
-    return produtosMerchant.filter(produto => {
+    return produtosMerchant.filter((produto) => {
       if (categoriaSelecionada !== 'todas' && produto.categoria !== categoriaSelecionada) {
         return false;
       }
@@ -54,7 +68,7 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
         return false;
       }
 
-      return produto.disponivel;
+      return produto.disponivel !== false;
     });
   }, [produtosMerchant, categoriaSelecionada, busca]);
 
@@ -66,9 +80,9 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
       produtoId: produto.id,
       merchantId: merchant.id,
       nome: produto.nome,
-      preco: produto.precoPromocional || produto.preco,
+      preco: produto.precoPromocional ?? produto.preco,
       quantidade: 1,
-      imagem: produto.imagem
+      imagem: produto.imagem || '',
     }));
     toast.success('Produto adicionado ao carrinho!');
   };
@@ -114,30 +128,42 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
 
       {/* Banner do Merchant */}
       <div className="relative h-64 md:h-80">
-        <img
-          src={merchant.banner}
-          alt={merchant.nome}
-          className="w-full h-full object-cover"
-        />
+        {merchant.banner ? (
+          <img
+            src={merchant.banner}
+            alt={merchant.nome}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-primary/40 via-primary/10 to-background" />
+        )}
         <div className="absolute inset-0 bg-black/40" />
 
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
           <div className="container mx-auto">
             <div className="flex items-end gap-4">
-              <img
-                src={merchant.logo}
-                alt={merchant.nome}
-                className="w-20 h-20 rounded-lg border-4 border-white object-cover"
-              />
+              {merchant.logo ? (
+                <img
+                  src={merchant.logo}
+                  alt={merchant.nome}
+                  className="w-20 h-20 rounded-lg border-4 border-white object-cover"
+                />
+              ) : (
+                <div className="flex h-20 w-20 items-center justify-center rounded-lg border-4 border-white bg-primary text-2xl font-bold">
+                  {merchant.nome.charAt(0)}
+                </div>
+              )}
               <div className="flex-1">
                 <h1 className="text-3xl font-bold mb-2">{merchant.nome}</h1>
-                <p className="text-white/90 mb-2">{merchant.descricao}</p>
+                <p className="text-white/90 mb-2">
+                  {merchant.descricao || 'Descrição não disponível no momento.'}
+                </p>
 
                 <div className="flex items-center gap-4 text-sm">
                   <div className="flex items-center">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                    <span>{merchant.avaliacao}</span>
-                    <span className="ml-1">({merchant.totalAvaliacoes})</span>
+                    <span>{(merchant.avaliacao ?? 0).toFixed(1)}</span>
+                    <span className="ml-1">({merchant.totalAvaliacoes ?? 0})</span>
                   </div>
 
                   {merchant.tempoEntrega && (
@@ -212,11 +238,15 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
                 {produtosFiltrados.map((produto) => (
                   <Card key={produto.id} className="overflow-hidden">
                     <div className="relative">
-                      <img
-                        src={produto.imagem}
-                        alt={produto.nome}
-                        className="w-full h-48 object-cover"
-                      />
+                      {produto.imagem ? (
+                        <img
+                          src={produto.imagem}
+                          alt={produto.nome}
+                          className="w-full h-48 object-cover"
+                        />
+                      ) : (
+                        <div className="h-48 w-full bg-muted" />
+                      )}
                       {produto.precoPromocional && (
                         <Badge className="absolute top-2 left-2 bg-red-600">
                           Promoção
@@ -227,12 +257,12 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
                     <CardContent className="p-4">
                       <h3 className="font-semibold mb-2">{produto.nome}</h3>
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {produto.descricao}
+                        {produto.descricao || 'Descrição indisponível.'}
                       </p>
 
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          {produto.precoPromocional ? (
+                          {typeof produto.precoPromocional === 'number' ? (
                             <div>
                               <span className="text-lg font-bold text-primary">
                                 R$ {produto.precoPromocional.toFixed(2)}
@@ -283,18 +313,22 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
                 <CardTitle>Sobre {merchant.nome}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-6">{merchant.descricao}</p>
+                <p className="text-muted-foreground mb-6">
+                  {merchant.descricao || 'Descrição não disponível.'}
+                </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold mb-2">Horário de Funcionamento</h3>
-                    <p className="text-muted-foreground">{merchant.horarioFuncionamento}</p>
+                    <p className="text-muted-foreground">
+                      {merchant.horarioFuncionamento || 'Não informado'}
+                    </p>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-2">Tipo de Estabelecimento</h3>
                     <Badge variant="secondary" className="capitalize">
-                      {merchant.tipo}
+                      {merchant.tipo || 'Estabelecimento'}
                     </Badge>
                   </div>
 
@@ -327,22 +361,22 @@ export default function MerchantVitrine({ merchantSlug }: MerchantVitrineProps) 
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>{merchant.endereco}</span>
+                    <span>{merchant.endereco || 'Endereço não informado'}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-muted-foreground" />
-                    <span>{merchant.telefone}</span>
+                    <span>{merchant.telefone || 'Telefone não informado'}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-muted-foreground" />
-                    <span>{merchant.email}</span>
+                    <span>{merchant.email || 'E-mail não informado'}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-muted-foreground" />
-                    <span>{merchant.horarioFuncionamento}</span>
+                    <span>{merchant.horarioFuncionamento || 'Horário não informado'}</span>
                   </div>
                 </div>
               </CardContent>

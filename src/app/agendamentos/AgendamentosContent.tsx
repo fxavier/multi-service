@@ -69,11 +69,17 @@ export default function AgendamentosContent() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <img
-              src={prestador.foto}
-              alt={prestador.nome}
-              className="w-16 h-16 rounded-full object-cover"
-            />
+            {prestador.foto ? (
+              <img
+                src={prestador.foto}
+                alt={prestador.nome}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white text-lg font-semibold">
+                {prestador.nome.charAt(0)}
+              </div>
+            )}
 
             <div className="flex-1">
               <div className="flex items-start justify-between mb-2">
@@ -124,14 +130,14 @@ export default function AgendamentosContent() {
               <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm">{prestador.avaliacao}</span>
+                  <span className="text-sm">{(prestador.avaliacao ?? 0).toFixed(1)}</span>
                 </div>
 
                 <div className="text-right">
                   <p className="text-lg font-bold text-primary">
                     R$ {agendamento.precoTotal.toFixed(2)}
                   </p>
-                  <p className="text-sm text-muted-foreground">{servico.duracao}</p>
+                  <p className="text-sm text-muted-foreground">{servico.duracao || 'Consultar'}</p>
                 </div>
               </div>
 
