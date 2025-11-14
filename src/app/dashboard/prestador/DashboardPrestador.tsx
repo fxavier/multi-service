@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Calendar, Clock, DollarSign, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { agendamentosDefinidos, selectAgendamentos } from '@/store/slices/agendamentosSlice';
 
 interface Servico {
   id: string;
@@ -24,22 +26,8 @@ interface Servico {
   ativo: boolean;
 }
 
-interface Agendamento {
-  id: string;
-  servicoId: string;
-  clienteNome: string;
-  clienteTelefone: string;
-  data: string;
-  horario: string;
-  endereco: string;
-  precoTotal: number;
-  status: string;
-  observacoes?: string;
-}
-
 export default function DashboardPrestador() {
   const [servicos, setServicos] = useState<Servico[]>([]);
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [servicoEditando, setServicoEditando] = useState<Servico | null>(null);
   const [dialogAberto, setDialogAberto] = useState(false);
   const [formServico, setFormServico] = useState({
@@ -53,6 +41,12 @@ export default function DashboardPrestador() {
 
   // Simular dados do prestador logado
   const prestadorId = '1'; // Em um app real, viria da autenticação
+  const dispatch = useAppDispatch();
+  const agendamentos = useAppSelector(selectAgendamentos);
+  const agendamentosPrestador = useMemo(
+    () => agendamentos.filter((agendamento) => agendamento.prestadorId === prestadorId),
+    [agendamentos, prestadorId]
+  );
 
   useEffect(() => {
     // Carregar serviços do prestador
@@ -64,13 +58,9 @@ export default function DashboardPrestador() {
     // Carregar agendamentos do prestador
     const agendamentosSalvos = localStorage.getItem('marketplace-agendamentos');
     if (agendamentosSalvos) {
-      const todosAgendamentos = JSON.parse(agendamentosSalvos);
-      const agendamentosPrestador = todosAgendamentos.filter((agendamento: any) => 
-        agendamento.prestadorId === prestadorId
-      );
-      setAgendamentos(agendamentosPrestador);
+      dispatch(agendamentosDefinidos(JSON.parse(agendamentosSalvos)));
     }
-  }, [prestadorId]);
+  }, [dispatch, prestadorId]);
 
   const salvarServicos = (novosServicos: Servico[]) => {
     localStorage.setItem(`prestador-${prestadorId}-servicos`, JSON.stringify(novosServicos));
@@ -138,16 +128,16 @@ export default function DashboardPrestador() {
     });
   };
 
-  const totalFaturamento = agendamentos
+  const totalFaturamento = agendamentosPrestador
     .filter(a => a.status === 'concluido')
     .reduce((total, agendamento) => total + agendamento.precoTotal, 0);
-  
-  const agendamentosHoje = agendamentos.filter(a => {
+
+  const agendamentosHoje = agendamentosPrestador.filter(a => {
     const hoje = new Date().toISOString().split('T')[0];
     return a.data === hoje && a.status !== 'cancelado';
   }).length;
 
-  const agendamentosPendentes = agendamentos.filter(a => a.status === 'agendado').length;
+  const agendamentosPendentes = agendamentosPrestador.filter(a => a.status === 'agendado').length;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -375,7 +365,7 @@ export default function DashboardPrestador() {
               <CardTitle>Agendamentos Recebidos</CardTitle>
             </CardHeader>
             <CardContent>
-              {agendamentos.length === 0 ? (
+              {agendamentosPrestador.length === 0 ? (
                 <div className="text-center py-12">
                   <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
@@ -384,7 +374,7 @@ export default function DashboardPrestador() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {agendamentos.map((agendamento) => {
+                  {agendamentosPrestador.map((agendamento) => {
                     const servico = servicos.find(s => s.id === agendamento.servicoId);
                     
                     return (

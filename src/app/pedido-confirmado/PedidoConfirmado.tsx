@@ -1,25 +1,34 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { CheckCircle, Package, Clock, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { pedidosDefinidos, selectPedidos } from '@/store/slices/pedidosSlice';
+import type { Pedido } from '@/types/marketplace';
 
 export default function PedidoConfirmado() {
   const searchParams = useSearchParams();
   const numeroPedido = searchParams.get('numero');
-  const [pedido, setPedido] = useState<any>(null);
+  const dispatch = useAppDispatch();
+  const pedidos = useAppSelector(selectPedidos);
+  const pedido = useMemo(() => {
+    if (!numeroPedido) return undefined;
+    return pedidos.find((p) => p.numero === numeroPedido);
+  }, [numeroPedido, pedidos]);
 
   useEffect(() => {
     if (numeroPedido) {
-      const pedidos = JSON.parse(localStorage.getItem('marketplace-pedidos') || '[]');
-      const pedidoEncontrado = pedidos.find((p: any) => p.numero === numeroPedido);
-      setPedido(pedidoEncontrado);
+      const pedidosSalvos = localStorage.getItem('marketplace-pedidos');
+      if (pedidosSalvos) {
+        dispatch(pedidosDefinidos(JSON.parse(pedidosSalvos) as Pedido[]));
+      }
     }
-  }, [numeroPedido]);
+  }, [dispatch, numeroPedido]);
 
   if (!pedido) {
     return (
@@ -69,7 +78,7 @@ export default function PedidoConfirmado() {
                   {pedido.tipoEntrega === 'entrega' ? 'Em até 60 minutos' : 'Aguarde confirmação'}
                 </p>
               </div>
-              
+
               <div className="flex flex-col items-center">
                 <CheckCircle className="h-8 w-8 text-muted-foreground mb-2" />
                 <p className="font-medium">Concluído</p>
@@ -102,9 +111,9 @@ export default function PedidoConfirmado() {
             <div>
               <h3 className="font-medium mb-2">Dados do Cliente</h3>
               <div className="text-sm space-y-1">
-                <p><strong>Nome:</strong> {pedido.nome}</p>
-                <p><strong>Telefone:</strong> {pedido.telefone}</p>
-                <p><strong>E-mail:</strong> {pedido.email}</p>
+                <p><strong>Nome:</strong> {pedido.clienteNome}</p>
+                <p><strong>Telefone:</strong> {pedido.clienteTelefone}</p>
+                <p><strong>E-mail:</strong> {pedido.clienteEmail}</p>
                 {pedido.tipoEntrega === 'entrega' && pedido.endereco && (
                   <p><strong>Endereço:</strong> {pedido.endereco}</p>
                 )}
@@ -121,13 +130,6 @@ export default function PedidoConfirmado() {
                 <p><strong>Total:</strong> R$ {pedido.total.toFixed(2)}</p>
               </div>
             </div>
-
-            {pedido.observacoes && (
-              <div>
-                <h3 className="font-medium mb-2">Observações</h3>
-                <p className="text-sm text-muted-foreground">{pedido.observacoes}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
