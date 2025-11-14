@@ -9,10 +9,12 @@ import prestadoresReducer from './slices/prestadoresSlice';
 import servicosReducer from './slices/servicosSlice';
 import agendamentosReducer from './slices/agendamentosSlice';
 import pedidosReducer from './slices/pedidosSlice';
+import authReducer from './slices/authSlice';
 import { marketplaceApi } from './api';
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     cart: cartReducer,
     merchants: merchantsReducer,
     categorias: categoriasReducer,

@@ -9,12 +9,29 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Link from 'next/link';
 import { selectTotalItens } from '@/store/slices/cartSlice';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logout, selectAuthState } from '@/store/slices/authSlice';
 
 export default function Header() {
   const [menuAberto, setMenuAberto] = useState(false);
   const [busca, setBusca] = useState('');
+  const dispatch = useAppDispatch();
   const totalItens = useAppSelector(selectTotalItens);
+  const authState = useAppSelector(selectAuthState);
+  const isAuthenticated = Boolean(authState.token);
+  const usuario = authState.user;
+  const nomeUsuario =
+    (typeof usuario?.name === 'string' && usuario.name) ||
+    (typeof (usuario as any)?.full_name === 'string' && (usuario as any).full_name) ||
+    (typeof (usuario as any)?.username === 'string' && (usuario as any).username) ||
+    (typeof usuario?.email === 'string' && usuario.email) ||
+    'Minha conta';
+  const primeiroNome = nomeUsuario.split(' ')[0];
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setMenuAberto(false);
+  };
 
   const navegacao = [
     { nome: 'Início', href: '/' },
@@ -69,6 +86,40 @@ export default function Header() {
               <MapPin className="h-4 w-4 mr-2 text-primary" />
               <span className="text-sm">Maputo, MZ</span>
             </Button>
+
+            {/* Autenticação */}
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="hidden sm:flex hover:bg-primary/10">
+                    <User className="h-4 w-4 mr-2 text-primary" />
+                    <span className="text-sm">{primeiroNome}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/merchant" className="flex items-center">
+                      <Store className="h-4 w-4 mr-2" style={{ color: '#FF6900' }} />
+                      Painel do estabelecimento
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/prestador" className="flex items-center">
+                      <User className="h-4 w-4 mr-2" style={{ color: '#FF6900' }} />
+                      Painel do prestador
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>Sair</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/login" className="hidden sm:flex">
+                <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                  <User className="h-4 w-4 mr-2 text-primary" />
+                  <span className="text-sm">Entrar</span>
+                </Button>
+              </Link>
+            )}
 
             {/* Cadastros */}
             <DropdownMenu>
@@ -154,6 +205,26 @@ export default function Header() {
               ))}
 
               <div className="border-t pt-3 space-y-2">
+                {isAuthenticated ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start hover:bg-primary/10"
+                    onClick={handleLogout}
+                  >
+                    <User className="h-4 w-4 mr-2 text-primary" />
+                    <span className="text-sm">Sair</span>
+                  </Button>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => setMenuAberto(false)}
+                  >
+                    <User className="h-4 w-4 mr-2" style={{ color: '#FF6900' }} />
+                    Entrar
+                  </Link>
+                )}
                 <Link
                   href="/cadastro/merchant"
                   className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
