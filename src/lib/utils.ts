@@ -2,15 +2,22 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+const formatadorMetical = new Intl.NumberFormat('pt-MZ', {
+  style: 'currency',
+  currency: 'MZN',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
  * Formata valores monetários em Meticais Moçambicanos
  */
 export function formatarMoeda(valor: number): string {
-  return `${valor.toFixed(2).replace('.', ',')} MT`;
+  return formatadorMetical.format(valor);
 }
 
 /**

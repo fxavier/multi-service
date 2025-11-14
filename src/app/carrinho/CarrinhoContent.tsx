@@ -110,7 +110,7 @@ export default function CarrinhoContent() {
                           <p className="text-sm text-muted-foreground">{item.observacoes}</p>
                         )}
                         <p className="text-lg font-semibold text-primary">
-                          R$ {item.preco.toFixed(2)}
+                          MZN {item.preco.toFixed(2)}
                         </p>
                       </div>
 
@@ -146,7 +146,7 @@ export default function CarrinhoContent() {
 
                       <div className="text-right">
                         <p className="font-semibold">
-                          R$ {(item.preco * item.quantidade).toFixed(2)}
+                          MZN {(item.preco * item.quantidade).toFixed(2)}
                         </p>
                         <Button
                           variant="ghost"
@@ -183,19 +183,19 @@ export default function CarrinhoContent() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>R$ {subtotal.toFixed(2)}</span>
+                <span>MZN {subtotal.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between">
                 <span>Taxa de Entrega</span>
-                <span>R$ {taxaEntrega.toFixed(2)}</span>
+                <span>MZN {taxaEntrega.toFixed(2)}</span>
               </div>
 
               <Separator />
 
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span className="text-primary">R$ {total.toFixed(2)}</span>
+                <span className="text-primary">MZN {total.toFixed(2)}</span>
               </div>
 
               <Link href="/checkout" className="block">

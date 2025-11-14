@@ -331,7 +331,7 @@ export default function DashboardPrestador() {
 
                       <div className="text-right">
                         <p className="text-lg font-bold text-primary">
-                          R$ {servico.preco.toFixed(2)}
+                          MZN {servico.preco.toFixed(2)}
                         </p>
                       </div>
 
@@ -419,7 +419,7 @@ export default function DashboardPrestador() {
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-lg font-bold text-primary">
-                              R$ {agendamento.precoTotal.toFixed(2)}
+                              MZN {agendamento.precoTotal.toFixed(2)}
                             </p>
                           </div>
                           
