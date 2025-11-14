@@ -29,10 +29,18 @@ export const marketplaceApi = createApi({
   reducerPath: 'marketplaceApi',
   baseQuery: fetchBaseQuery({
     baseUrl,
-    prepareHeaders: (headers) => {
+    prepareHeaders: (headers, { getState }) => {
       if (defaultTenant) {
         headers.set(tenantHeader, defaultTenant);
       }
+
+      const state = getState() as { auth?: { token?: string | null } };
+      const token = state?.auth?.token;
+
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+
       return headers;
     },
   }),
