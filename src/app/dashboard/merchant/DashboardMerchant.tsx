@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { pedidosDefinidos, selectPedidos } from '@/store/slices/pedidosSlice';
+import type { Pedido } from '@/types/marketplace';
 
 interface Produto {
   id: string;
@@ -26,19 +29,8 @@ interface Produto {
   estoque?: number;
 }
 
-interface Pedido {
-  id: string;
-  numero: string;
-  clienteNome: string;
-  total: number;
-  status: string;
-  dataHora: string;
-  itens: any[];
-}
-
 export default function DashboardMerchant() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
   const [dialogAberto, setDialogAberto] = useState(false);
   const [formProduto, setFormProduto] = useState({
@@ -54,6 +46,15 @@ export default function DashboardMerchant() {
 
   // Simular dados do merchant logado
   const merchantId = '1'; // Em um app real, viria da autenticação
+  const dispatch = useAppDispatch();
+  const pedidos = useAppSelector(selectPedidos);
+  const pedidosMerchant = useMemo(
+    () =>
+      pedidos.filter((pedido) =>
+        pedido.itens.some((item) => item.merchantId === merchantId)
+      ),
+    [pedidos, merchantId]
+  );
 
   useEffect(() => {
     // Carregar produtos do merchant
@@ -65,13 +66,9 @@ export default function DashboardMerchant() {
     // Carregar pedidos do merchant
     const pedidosSalvos = localStorage.getItem('marketplace-pedidos');
     if (pedidosSalvos) {
-      const todosPedidos = JSON.parse(pedidosSalvos);
-      const pedidosMerchant = todosPedidos.filter((pedido: any) => 
-        pedido.itens.some((item: any) => item.merchantId === merchantId)
-      );
-      setPedidos(pedidosMerchant);
+      dispatch(pedidosDefinidos(JSON.parse(pedidosSalvos) as Pedido[]));
     }
-  }, [merchantId]);
+  }, [dispatch, merchantId]);
 
   const salvarProdutos = (novosProdutos: Produto[]) => {
     localStorage.setItem(`merchant-${merchantId}-produtos`, JSON.stringify(novosProdutos));
@@ -145,8 +142,8 @@ export default function DashboardMerchant() {
     });
   };
 
-  const totalVendas = pedidos.reduce((total, pedido) => total + pedido.total, 0);
-  const pedidosPendentes = pedidos.filter(p => p.status === 'pendente').length;
+  const totalVendas = pedidosMerchant.reduce((total, pedido) => total + pedido.total, 0);
+  const pedidosPendentes = pedidosMerchant.filter(p => p.status === 'pendente').length;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -200,7 +197,7 @@ export default function DashboardMerchant() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total de Pedidos</p>
-                <p className="text-2xl font-bold">{pedidos.length}</p>
+                <p className="text-2xl font-bold">{pedidosMerchant.length}</p>
               </div>
               <ShoppingCart className="h-8 w-8 text-blue-500" />
             </div>
@@ -418,7 +415,7 @@ export default function DashboardMerchant() {
               <CardTitle>Pedidos Recebidos</CardTitle>
             </CardHeader>
             <CardContent>
-              {pedidos.length === 0 ? (
+              {pedidosMerchant.length === 0 ? (
                 <div className="text-center py-12">
                   <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
@@ -427,7 +424,7 @@ export default function DashboardMerchant() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {pedidos.map((pedido) => (
+                  {pedidosMerchant.map((pedido) => (
                     <div key={pedido.id} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <div>

@@ -16,6 +16,8 @@ import Link from 'next/link';
 import { useGetPrestadoresQuery, useGetServicosQuery } from '@/store/api';
 import { useAppDispatch } from '@/store/hooks';
 import { adicionarItem } from '@/store/slices/cartSlice';
+import { agendamentoRegistrado } from '@/store/slices/agendamentosSlice';
+import type { Agendamento } from '@/types/marketplace';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PrestadorDetalhesProps {
@@ -64,18 +66,20 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
     const servico = servicosPrestador.find(s => s.id === servicoSelecionado);
     if (!servico) return;
 
-    const agendamento = {
+    const agendamento: Agendamento = {
       id: Date.now().toString(),
-      prestadorId: prestadorId,
+      prestadorId,
       servicoId: servico.id,
       ...formAgendamento,
       precoTotal: servico.preco,
-      status: 'agendado' as const
+      status: 'agendado',
     };
 
     const agendamentos = JSON.parse(localStorage.getItem('marketplace-agendamentos') || '[]');
     agendamentos.push(agendamento);
     localStorage.setItem('marketplace-agendamentos', JSON.stringify(agendamentos));
+
+    dispatch(agendamentoRegistrado(agendamento));
 
     toast.success('Agendamento realizado com sucesso!');
     setAgendamentoAberto(false);

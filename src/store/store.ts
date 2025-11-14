@@ -2,11 +2,25 @@
 
 import { configureStore } from '@reduxjs/toolkit';
 import cartReducer from './slices/cartSlice';
+import merchantsReducer from './slices/merchantsSlice';
+import categoriasReducer from './slices/categoriasSlice';
+import produtosReducer from './slices/produtosSlice';
+import prestadoresReducer from './slices/prestadoresSlice';
+import servicosReducer from './slices/servicosSlice';
+import agendamentosReducer from './slices/agendamentosSlice';
+import pedidosReducer from './slices/pedidosSlice';
 import { marketplaceApi } from './api';
 
 export const store = configureStore({
   reducer: {
     cart: cartReducer,
+    merchants: merchantsReducer,
+    categorias: categoriasReducer,
+    produtos: produtosReducer,
+    prestadores: prestadoresReducer,
+    servicos: servicosReducer,
+    agendamentos: agendamentosReducer,
+    pedidos: pedidosReducer,
     [marketplaceApi.reducerPath]: marketplaceApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

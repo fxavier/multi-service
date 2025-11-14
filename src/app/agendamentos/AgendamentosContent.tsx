@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Calendar, Clock, User, MapPin, Phone, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,33 +8,22 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { useGetPrestadoresQuery, useGetServicosQuery } from '@/store/api';
-
-interface Agendamento {
-  id: string;
-  prestadorId: string;
-  servicoId: string;
-  clienteNome: string;
-  clienteTelefone: string;
-  clienteEmail: string;
-  endereco: string;
-  data: string;
-  horario: string;
-  observacoes?: string;
-  precoTotal: number;
-  status: 'agendado' | 'confirmado' | 'concluido' | 'cancelado';
-}
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { agendamentosDefinidos, selectAgendamentos } from '@/store/slices/agendamentosSlice';
+import type { Agendamento } from '@/types/marketplace';
 
 export default function AgendamentosContent() {
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const dispatch = useAppDispatch();
+  const agendamentos = useAppSelector(selectAgendamentos);
   const { data: prestadores } = useGetPrestadoresQuery();
   const { data: servicos } = useGetServicosQuery();
 
   useEffect(() => {
     const agendamentosSalvos = localStorage.getItem('marketplace-agendamentos');
     if (agendamentosSalvos) {
-      setAgendamentos(JSON.parse(agendamentosSalvos));
+      dispatch(agendamentosDefinidos(JSON.parse(agendamentosSalvos)));
     }
-  }, []);
+  }, [dispatch]);
 
   const agendamentosAtivos = agendamentos.filter(a => a.status !== 'cancelado');
   const agendamentosHistorico = agendamentos.filter(a => a.status === 'concluido' || a.status === 'cancelado');

@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { limparCarrinho as limparCarrinhoAction, selectItensCarrinho, selectSubtotal } from '@/store/slices/cartSlice';
+import { pedidoRegistrado } from '@/store/slices/pedidosSlice';
+import type { Pedido } from '@/types/marketplace';
 
 export default function CheckoutContent() {
   const itens = useAppSelector(selectItensCarrinho);
@@ -51,23 +53,28 @@ export default function CheckoutContent() {
 
     const numeroPedido = `PED${Date.now()}`;
 
-    const pedido = {
+    const pedido: Pedido = {
       id: Date.now().toString(),
       numero: numeroPedido,
       itens,
-      ...dadosCliente,
+      clienteNome: dadosCliente.nome,
+      clienteTelefone: dadosCliente.telefone,
+      clienteEmail: dadosCliente.email,
+      endereco: dadosCliente.endereco,
       metodoPagamento,
-      tipoEntrega,
+      tipoEntrega: tipoEntrega as Pedido['tipoEntrega'],
       subtotal,
       taxaEntrega,
       total,
-      status: 'pendente' as const,
-      dataHora: new Date().toISOString()
+      status: 'pendente',
+      dataHora: new Date().toISOString(),
     };
 
     const pedidos = JSON.parse(localStorage.getItem('marketplace-pedidos') || '[]');
     pedidos.push(pedido);
     localStorage.setItem('marketplace-pedidos', JSON.stringify(pedidos));
+
+    dispatch(pedidoRegistrado(pedido));
 
     dispatch(limparCarrinhoAction());
 
