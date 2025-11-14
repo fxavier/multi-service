@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -12,11 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { prestadores } from '@/data/prestadores';
-import { servicos } from '@/data/servicos';
-import { useCarrinho } from '@/contexts/CarrinhoContext';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useGetPrestadoresQuery, useGetServicosQuery } from '@/store/api';
+import { useAppDispatch } from '@/store/hooks';
+import { adicionarItem } from '@/store/slices/cartSlice';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PrestadorDetalhesProps {
   prestadorId: string;
@@ -35,27 +35,23 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
     observacoes: ''
   });
 
-  const { adicionarItem } = useCarrinho();
+  const dispatch = useAppDispatch();
 
-  const prestador = prestadores.find(p => p.id === prestadorId);
-  const servicosPrestador = servicos.filter(s => s.prestadorId === prestadorId);
+  const { data: prestadores, isLoading: carregandoPrestador } = useGetPrestadoresQuery();
+  const { data: servicos, isLoading: carregandoServicos } = useGetServicosQuery();
 
-  if (!prestador) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-muted-foreground mb-4">Prestador não encontrado.</p>
-            <Link href="/servicos">
-              <Button variant="outline">Voltar aos Serviços</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const prestador = useMemo(
+    () => (prestadores ?? []).find((p) => p.id === prestadorId),
+    [prestadores, prestadorId]
+  );
 
-  const servicoEscolhido = servicosPrestador.find(s => s.id === servicoSelecionado);
+  const servicosPrestador = useMemo(
+    () => (servicos ?? []).filter((s) => s.prestadorId === prestadorId),
+    [servicos, prestadorId]
+  );
+
+  const carregando = carregandoPrestador || carregandoServicos;
+
 
   const handleAgendamento = () => {
     if (!servicoSelecionado || !formAgendamento.clienteNome || !formAgendamento.data || !formAgendamento.horario) {
@@ -66,17 +62,15 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
     const servico = servicosPrestador.find(s => s.id === servicoSelecionado);
     if (!servico) return;
 
-    // Simular agendamento (em um app real, salvaria no backend)
     const agendamento = {
       id: Date.now().toString(),
-      prestadorId: prestador.id,
+      prestadorId: prestadorId,
       servicoId: servico.id,
       ...formAgendamento,
       precoTotal: servico.preco,
       status: 'agendado' as const
     };
 
-    // Salvar no localStorage
     const agendamentos = JSON.parse(localStorage.getItem('marketplace-agendamentos') || '[]');
     agendamentos.push(agendamento);
     localStorage.setItem('marketplace-agendamentos', JSON.stringify(agendamentos));
@@ -95,8 +89,10 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
     setServicoSelecionado('');
   };
 
-  const adicionarAoCarrinho = (servico: typeof servicosPrestador[0]) => {
-    adicionarItem({
+  const adicionarAoCarrinho = (servico: typeof servicosPrestador[number]) => {
+    if (!prestador) return;
+
+    dispatch(adicionarItem({
       tipo: 'servico',
       servicoId: servico.id,
       prestadorId: prestador.id,
@@ -105,9 +101,38 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
       quantidade: 1,
       imagem: prestador.foto,
       observacoes: `Prestador: ${prestador.nome}`
-    });
+    }));
     toast.success('Serviço adicionado ao carrinho!');
   };
+
+  if (carregando) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-64 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!prestador) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-muted-foreground mb-4">Prestador não encontrado.</p>
+            <Link href="/servicos">
+              <Button variant="outline">Voltar aos Serviços</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -128,10 +153,10 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
               alt={prestador.nome}
               className="w-32 h-32 rounded-full object-cover mx-auto md:mx-0"
             />
-            
+
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl font-bold mb-2">{prestador.nome}</h1>
-              
+
               {/* Profissões */}
               <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
                 {prestador.profissoes.map((profissao, index) => (
@@ -179,7 +204,7 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                   A partir de R$ {prestador.precoBase.toFixed(2)}
                 </span>
               </div>
-              
+
               <Dialog open={agendamentoAberto} onOpenChange={setAgendamentoAberto}>
                 <DialogTrigger asChild>
                   <Button size="lg" className="w-full md:w-auto">
@@ -208,48 +233,7 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                       </Select>
                     </div>
 
-                    <div>
-                      <Label htmlFor="nome">Nome Completo *</Label>
-                      <Input
-                        id="nome"
-                        value={formAgendamento.clienteNome}
-                        onChange={(e) => setFormAgendamento(prev => ({ ...prev, clienteNome: e.target.value }))}
-                        placeholder="Seu nome completo"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="telefone">Telefone</Label>
-                      <Input
-                        id="telefone"
-                        value={formAgendamento.clienteTelefone}
-                        onChange={(e) => setFormAgendamento(prev => ({ ...prev, clienteTelefone: e.target.value }))}
-                        placeholder="(11) 99999-9999"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="email">E-mail</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formAgendamento.clienteEmail}
-                        onChange={(e) => setFormAgendamento(prev => ({ ...prev, clienteEmail: e.target.value }))}
-                        placeholder="seu@email.com"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="endereco">Endereço</Label>
-                      <Input
-                        id="endereco"
-                        value={formAgendamento.endereco}
-                        onChange={(e) => setFormAgendamento(prev => ({ ...prev, endereco: e.target.value }))}
-                        placeholder="Endereço completo"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="data">Data *</Label>
                         <Input
@@ -257,7 +241,6 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                           type="date"
                           value={formAgendamento.data}
                           onChange={(e) => setFormAgendamento(prev => ({ ...prev, data: e.target.value }))}
-                          min={new Date().toISOString().split('T')[0]}
                         />
                       </div>
                       <div>
@@ -271,32 +254,62 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="clienteNome">Nome *</Label>
+                        <Input
+                          id="clienteNome"
+                          value={formAgendamento.clienteNome}
+                          onChange={(e) => setFormAgendamento(prev => ({ ...prev, clienteNome: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clienteTelefone">Telefone *</Label>
+                        <Input
+                          id="clienteTelefone"
+                          value={formAgendamento.clienteTelefone}
+                          onChange={(e) => setFormAgendamento(prev => ({ ...prev, clienteTelefone: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="clienteEmail">E-mail *</Label>
+                      <Input
+                        id="clienteEmail"
+                        type="email"
+                        value={formAgendamento.clienteEmail}
+                        onChange={(e) => setFormAgendamento(prev => ({ ...prev, clienteEmail: e.target.value }))}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="endereco">Endereço</Label>
+                      <Input
+                        id="endereco"
+                        value={formAgendamento.endereco}
+                        onChange={(e) => setFormAgendamento(prev => ({ ...prev, endereco: e.target.value }))}
+                        placeholder="Local de atendimento, se necessário"
+                      />
+                    </div>
+
                     <div>
                       <Label htmlFor="observacoes">Observações</Label>
                       <Textarea
                         id="observacoes"
                         value={formAgendamento.observacoes}
                         onChange={(e) => setFormAgendamento(prev => ({ ...prev, observacoes: e.target.value }))}
-                        placeholder="Informações adicionais..."
-                        rows={3}
                       />
                     </div>
 
-                    {servicoEscolhido && (
-                      <div className="bg-muted p-4 rounded-lg">
-                        <p className="font-medium">Resumo do Agendamento:</p>
-                        <p className="text-sm text-muted-foreground">
-                          {servicoEscolhido.nome} - {servicoEscolhido.duracao}
-                        </p>
-                        <p className="text-lg font-bold text-primary">
-                          R$ {servicoEscolhido.preco.toFixed(2)}
-                        </p>
-                      </div>
-                    )}
-
-                    <Button onClick={handleAgendamento} className="w-full">
-                      Confirmar Agendamento
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setAgendamentoAberto(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleAgendamento}>
+                        Confirmar
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -305,12 +318,11 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
         </CardContent>
       </Card>
 
-      {/* Conteúdo Principal */}
       <Tabs defaultValue="servicos" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList>
           <TabsTrigger value="servicos">Serviços</TabsTrigger>
           <TabsTrigger value="sobre">Sobre</TabsTrigger>
-          <TabsTrigger value="galeria">Galeria</TabsTrigger>
+          <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
         </TabsList>
 
         <TabsContent value="servicos">
@@ -318,41 +330,37 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
             {servicosPrestador.map((servico) => (
               <Card key={servico.id}>
                 <CardHeader>
-                  <CardTitle className="text-lg">{servico.nome}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>{servico.nome}</CardTitle>
+                    <Badge variant="secondary">{servico.categoria}</Badge>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">{servico.descricao}</p>
-                  
-                  <div className="flex items-center justify-between mb-4">
+                <CardContent className="space-y-3">
+                  <p className="text-muted-foreground">{servico.descricao}</p>
+                  <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-2xl font-bold text-primary">
-                        R$ {servico.preco.toFixed(2)}
-                      </span>
+                      <p className="text-sm text-muted-foreground">Duração</p>
+                      <p className="font-medium">{servico.duracao}</p>
                     </div>
-                    <Badge variant="outline">{servico.duracao}</Badge>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">A partir de</p>
+                      <p className="text-xl font-semibold text-primary">R$ {servico.preco.toFixed(2)}</p>
+                    </div>
                   </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => adicionarAoCarrinho(servico)}
-                      variant="outline" 
-                      className="flex-1"
-                    >
-                      Adicionar ao Carrinho
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        setServicoSelecionado(servico.id);
-                        setAgendamentoAberto(true);
-                      }}
-                      className="flex-1"
-                    >
-                      Agendar
-                    </Button>
-                  </div>
+                  <Button className="w-full" onClick={() => adicionarAoCarrinho(servico)}>
+                    Adicionar ao Carrinho
+                  </Button>
                 </CardContent>
               </Card>
             ))}
+
+            {servicosPrestador.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Nenhum serviço disponível no momento.</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -362,43 +370,19 @@ export default function PrestadorDetalhes({ prestadorId }: PrestadorDetalhesProp
               <CardTitle>Sobre {prestador.nome}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-6">{prestador.descricao}</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-semibold mb-2">Experiência</h3>
-                  <p className="text-muted-foreground">{prestador.experiencia}</p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">Disponibilidade</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {prestador.disponibilidade.map((dia, index) => (
-                      <Badge key={index} variant="secondary">{dia}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <p className="text-muted-foreground mb-4">{prestador.descricao}</p>
+              <p className="text-sm text-muted-foreground">Experiência: {prestador.experiencia}</p>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="galeria">
+        <TabsContent value="avaliacoes">
           <Card>
             <CardHeader>
-              <CardTitle>Galeria de Trabalhos</CardTitle>
+              <CardTitle>Avaliações dos Clientes</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {prestador.galeria.map((imagem, index) => (
-                  <img
-                    key={index}
-                    src={imagem}
-                    alt={`Trabalho ${index + 1}`}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                ))}
-              </div>
+            <CardContent className="text-muted-foreground text-sm">
+              <p>Ainda não há avaliações públicas para este prestador.</p>
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,21 +1,28 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Star, Clock, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { merchants } from '@/data/merchants';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatarMoeda } from '@/lib/formatacao';
+import { useGetMerchantsQuery } from '@/store/api';
 
 export default function MerchantsCarousel() {
   const [indiceAtual, setIndiceAtual] = useState(0);
-  const merchantsDestaque = merchants.filter(m => m.destaque);
+  const { data: merchants, isLoading } = useGetMerchantsQuery();
+
+  const merchantsDestaque = useMemo(
+    () => (merchants ?? []).filter((merchant) => merchant.destaque),
+    [merchants]
+  );
 
   useEffect(() => {
+    if (!merchantsDestaque.length) return;
+
     const timer = setInterval(() => {
       setIndiceAtual((prev) => (prev + 1) % merchantsDestaque.length);
     }, 5000);
@@ -24,12 +31,39 @@ export default function MerchantsCarousel() {
   }, [merchantsDestaque.length]);
 
   const proximoSlide = () => {
-    setIndiceAtual((prev) => (prev + 1) % merchantsDestaque.length);
+    setIndiceAtual((prev) => (prev + 1) % Math.max(merchantsDestaque.length, 1));
   };
 
   const slideAnterior = () => {
-    setIndiceAtual((prev) => (prev - 1 + merchantsDestaque.length) % merchantsDestaque.length);
+    setIndiceAtual((prev) => (prev - 1 + Math.max(merchantsDestaque.length, 1)) % Math.max(merchantsDestaque.length, 1));
   };
+
+  if (isLoading) {
+    return (
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Estabelecimentos em Destaque</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Conheça os melhores estabelecimentos da sua região com ofertas especiais e produtos de qualidade.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Card key={index}>
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-48 w-full rounded-xl" />
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-10 w-32" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (merchantsDestaque.length === 0) return null;
 
@@ -46,7 +80,7 @@ export default function MerchantsCarousel() {
         <div className="relative">
           {/* Carrossel Principal */}
           <div className="overflow-hidden rounded-2xl">
-            <div 
+            <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${indiceAtual * 100}%)` }}
             >
@@ -61,7 +95,7 @@ export default function MerchantsCarousel() {
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      
+
                       {/* Conteúdo Sobreposto */}
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                         <div className="flex items-center space-x-4 mb-4">
@@ -110,8 +144,8 @@ export default function MerchantsCarousel() {
                         </div>
 
                         <Link href={`/merchants/${merchant.slug}`}>
-                          <Button 
-                            size="lg" 
+                          <Button
+                            size="lg"
                             className="w-full md:w-auto"
                             style={{ backgroundColor: '#FF6900', borderColor: '#FF6900' }}
                           >
@@ -135,7 +169,7 @@ export default function MerchantsCarousel() {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <Button
             variant="outline"
             size="icon"

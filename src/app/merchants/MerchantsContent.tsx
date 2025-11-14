@@ -1,18 +1,17 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Filter, Star, Clock, Truck, MapPin } from 'lucide-react';
+import { Search, Star, Clock, Truck, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { merchants } from '@/data/merchants';
+import { useGetMerchantsQuery } from '@/store/api';
 
 export default function MerchantsContent() {
   const searchParams = useSearchParams();
@@ -20,12 +19,11 @@ export default function MerchantsContent() {
   const [tipoFiltro, setTipoFiltro] = useState(searchParams.get('tipo') || '');
   const [avaliacaoFiltro, setAvaliacaoFiltro] = useState('');
   const [ordenacao, setOrdenacao] = useState('relevancia');
-  const [carregando, setCarregando] = useState(false);
+  const { data: merchants, isLoading, isError } = useGetMerchantsQuery();
 
   const merchantsFiltrados = useMemo(() => {
-    let resultado = merchants.filter(merchant => merchant.ativo);
+    let resultado = (merchants ?? []).filter(merchant => merchant.ativo);
 
-    // Filtro por busca
     if (busca) {
       resultado = resultado.filter(merchant =>
         merchant.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -33,28 +31,25 @@ export default function MerchantsContent() {
       );
     }
 
-    // Filtro por tipo
     if (tipoFiltro) {
       resultado = resultado.filter(merchant => merchant.tipo === tipoFiltro);
     }
 
-    // Filtro por avaliação
     if (avaliacaoFiltro) {
       const minAvaliacao = parseFloat(avaliacaoFiltro);
       resultado = resultado.filter(merchant => merchant.avaliacao >= minAvaliacao);
     }
 
-    // Ordenação
     switch (ordenacao) {
       case 'avaliacao':
-        resultado.sort((a, b) => b.avaliacao - a.avaliacao);
+        resultado = [...resultado].sort((a, b) => b.avaliacao - a.avaliacao);
         break;
       case 'nome':
-        resultado.sort((a, b) => a.nome.localeCompare(b.nome));
+        resultado = [...resultado].sort((a, b) => a.nome.localeCompare(b.nome));
         break;
       case 'relevancia':
       default:
-        resultado.sort((a, b) => {
+        resultado = [...resultado].sort((a, b) => {
           if (a.destaque && !b.destaque) return -1;
           if (!a.destaque && b.destaque) return 1;
           return b.avaliacao - a.avaliacao;
@@ -63,7 +58,7 @@ export default function MerchantsContent() {
     }
 
     return resultado;
-  }, [busca, tipoFiltro, avaliacaoFiltro, ordenacao]);
+  }, [merchants, busca, tipoFiltro, avaliacaoFiltro, ordenacao]);
 
   const tiposMerchant = [
     { valor: '', label: 'Todos os tipos' },
@@ -166,12 +161,20 @@ export default function MerchantsContent() {
       {/* Resultados */}
       <div className="mb-6">
         <p className="text-muted-foreground">
-          {merchantsFiltrados.length} estabelecimento(s) encontrado(s)
+          {isLoading ? 'Carregando estabelecimentos...' : `${merchantsFiltrados.length} estabelecimento(s) encontrado(s)`}
         </p>
       </div>
 
+      {isError && (
+        <Card className="mb-6">
+          <CardContent className="p-6 text-center text-sm text-red-500">
+            Não foi possível carregar os estabelecimentos. Tente novamente mais tarde.
+          </CardContent>
+        </Card>
+      )}
+
       {/* Grid de Merchants */}
-      {carregando ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index}>
@@ -198,6 +201,7 @@ export default function MerchantsContent() {
             setBusca('');
             setTipoFiltro('');
             setAvaliacaoFiltro('');
+            setOrdenacao('relevancia');
           }}>
             Limpar Filtros
           </Button>

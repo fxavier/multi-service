@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,14 +9,17 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { useCarrinho } from '@/contexts/CarrinhoContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { limparCarrinho as limparCarrinhoAction, selectItensCarrinho, selectSubtotal } from '@/store/slices/cartSlice';
 
 export default function CheckoutContent() {
-  const { itens, subtotal, limparCarrinho } = useCarrinho();
+  const itens = useAppSelector(selectItensCarrinho);
+  const subtotal = useAppSelector(selectSubtotal);
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  
+
   const [dadosCliente, setDadosCliente] = useState({
     nome: '',
     telefone: '',
@@ -27,7 +29,7 @@ export default function CheckoutContent() {
     cep: '',
     observacoes: ''
   });
-  
+
   const [tipoEntrega, setTipoEntrega] = useState('entrega');
   const [metodoPagamento, setMetodoPagamento] = useState('cartao');
 
@@ -36,7 +38,7 @@ export default function CheckoutContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!dadosCliente.nome || !dadosCliente.telefone || !dadosCliente.email) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
@@ -47,9 +49,8 @@ export default function CheckoutContent() {
       return;
     }
 
-    // Simular processamento do pedido
     const numeroPedido = `PED${Date.now()}`;
-    
+
     const pedido = {
       id: Date.now().toString(),
       numero: numeroPedido,
@@ -64,13 +65,11 @@ export default function CheckoutContent() {
       dataHora: new Date().toISOString()
     };
 
-    // Salvar pedido no localStorage
     const pedidos = JSON.parse(localStorage.getItem('marketplace-pedidos') || '[]');
     pedidos.push(pedido);
     localStorage.setItem('marketplace-pedidos', JSON.stringify(pedidos));
 
-    // Limpar carrinho
-    limparCarrinho();
+    dispatch(limparCarrinhoAction());
 
     toast.success('Pedido realizado com sucesso!');
     router.push(`/pedido-confirmado?numero=${numeroPedido}`);
@@ -132,7 +131,7 @@ export default function CheckoutContent() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="email">E-mail *</Label>
                   <Input
@@ -168,7 +167,7 @@ export default function CheckoutContent() {
                       </div>
                     </Label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 p-4 border rounded-lg">
                     <RadioGroupItem value="retirada" id="retirada" />
                     <Label htmlFor="retirada" className="flex-1 cursor-pointer">
@@ -201,29 +200,41 @@ export default function CheckoutContent() {
                       value={dadosCliente.endereco}
                       onChange={(e) => setDadosCliente(prev => ({ ...prev, endereco: e.target.value }))}
                       placeholder="Rua, número, complemento"
-                      required={tipoEntrega === 'entrega'}
+                      required
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="cidade">Cidade</Label>
+                      <Label htmlFor="cidade">Cidade *</Label>
                       <Input
                         id="cidade"
                         value={dadosCliente.cidade}
                         onChange={(e) => setDadosCliente(prev => ({ ...prev, cidade: e.target.value }))}
                         placeholder="Sua cidade"
+                        required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cep">CEP</Label>
+                      <Label htmlFor="cep">CEP *</Label>
                       <Input
                         id="cep"
                         value={dadosCliente.cep}
                         onChange={(e) => setDadosCliente(prev => ({ ...prev, cep: e.target.value }))}
                         placeholder="00000-000"
+                        required
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="observacoes">Observações</Label>
+                    <Textarea
+                      id="observacoes"
+                      value={dadosCliente.observacoes}
+                      onChange={(e) => setDadosCliente(prev => ({ ...prev, observacoes: e.target.value }))}
+                      placeholder="Instruções especiais, ponto de referência, etc."
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -234,7 +245,7 @@ export default function CheckoutContent() {
               <CardHeader>
                 <CardTitle>Método de Pagamento</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <RadioGroup value={metodoPagamento} onValueChange={setMetodoPagamento}>
                   <div className="flex items-center space-x-2 p-4 border rounded-lg">
                     <RadioGroupItem value="cartao" id="cartao" />
@@ -242,15 +253,15 @@ export default function CheckoutContent() {
                       <div className="flex items-center gap-3">
                         <CreditCard className="h-5 w-5" />
                         <div>
-                          <p className="font-medium">Cartão de Crédito/Débito</p>
+                          <p className="font-medium">Cartão de Crédito</p>
                           <p className="text-sm text-muted-foreground">
-                            Visa, Mastercard, Elo
+                            Pague com cartão de crédito ou débito
                           </p>
                         </div>
                       </div>
                     </Label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 p-4 border rounded-lg">
                     <RadioGroupItem value="pix" id="pix" />
                     <Label htmlFor="pix" className="flex-1 cursor-pointer">
@@ -259,22 +270,7 @@ export default function CheckoutContent() {
                         <div>
                           <p className="font-medium">PIX</p>
                           <p className="text-sm text-muted-foreground">
-                            Pagamento instantâneo
-                          </p>
-                        </div>
-                      </div>
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                    <RadioGroupItem value="dinheiro" id="dinheiro" />
-                    <Label htmlFor="dinheiro" className="flex-1 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="h-5 w-5 rounded-full bg-green-600" />
-                        <div>
-                          <p className="font-medium">Dinheiro</p>
-                          <p className="text-sm text-muted-foreground">
-                            Pagamento na entrega/retirada
+                            Confirmação imediata do pagamento
                           </p>
                         </div>
                       </div>
@@ -283,65 +279,38 @@ export default function CheckoutContent() {
                 </RadioGroup>
               </CardContent>
             </Card>
-
-            {/* Observações */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Observações</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={dadosCliente.observacoes}
-                  onChange={(e) => setDadosCliente(prev => ({ ...prev, observacoes: e.target.value }))}
-                  placeholder="Informações adicionais sobre seu pedido..."
-                  rows={3}
-                />
-              </CardContent>
-            </Card>
           </div>
 
           {/* Resumo do Pedido */}
-          <div className="lg:col-span-1">
+          <div>
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle>Resumo do Pedido</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Itens */}
-                <div className="space-y-2">
-                  {itens.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span>{item.quantidade}x {item.nome}</span>
-                      <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <Separator />
-                
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>R$ {subtotal.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span>Taxa de Entrega</span>
                   <span>R$ {taxaEntrega.toFixed(2)}</span>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
                   <span className="text-primary">R$ {total.toFixed(2)}</span>
                 </div>
-                
+
                 <Button type="submit" className="w-full" size="lg">
                   Confirmar Pedido
                 </Button>
-                
+
                 <p className="text-xs text-muted-foreground text-center">
-                  Ao confirmar, você concorda com nossos termos de uso
+                  Ao confirmar, você concorda com nossos termos de uso e política de privacidade
                 </p>
               </CardContent>
             </Card>

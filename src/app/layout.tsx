@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -7,7 +6,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import GlobalClientEffects from "@/components/GlobalClientEffects";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { CarrinhoProvider } from "@/contexts/CarrinhoContext";
+import { ReduxProvider } from "@/store/ReduxProvider";
 
 import "./globals.css";
 
@@ -42,13 +41,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <CarrinhoProvider>
+          <ReduxProvider>
             <Header />
             <main className="min-h-screen">
               {children}
             </main>
             <Footer />
-          </CarrinhoProvider>
+          </ReduxProvider>
           <Toaster />
           <SonnerToaster />
           <GlobalClientEffects />
