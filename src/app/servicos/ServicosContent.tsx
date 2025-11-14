@@ -25,7 +25,11 @@ export default function ServicosContent() {
 
   const categorias = useMemo(() => {
     const lista = new Set<string>();
-    (servicos ?? []).forEach((servico) => lista.add(servico.categoria));
+    (servicos ?? []).forEach((servico) => {
+      if (servico.categoria) {
+        lista.add(servico.categoria);
+      }
+    });
     return Array.from(lista);
   }, [servicos]);
 
@@ -33,8 +37,13 @@ export default function ServicosContent() {
     if (!prestadores) return [];
 
     let resultado = prestadores.filter(prestador => {
-      if (busca && !prestador.nome.toLowerCase().includes(busca.toLowerCase()) &&
-          !prestador.profissoes.some(p => p.toLowerCase().includes(busca.toLowerCase()))) {
+      const termo = busca.toLowerCase();
+      const profissoes = prestador.profissoes ?? [];
+      if (
+        busca &&
+        !prestador.nome.toLowerCase().includes(termo) &&
+        !profissoes.some(p => p.toLowerCase().includes(termo))
+      ) {
         return false;
       }
 
@@ -45,9 +54,10 @@ export default function ServicosContent() {
         if (!temServicoDaCategoria) return false;
       }
 
-      if (prestador.avaliacao < filtroAvaliacao) return false;
+      if ((prestador.avaliacao ?? 0) < filtroAvaliacao) return false;
 
-      if (prestador.precoBase < faixaPreco[0] || prestador.precoBase > faixaPreco[1]) {
+      const precoBase = prestador.precoBase ?? 0;
+      if (precoBase < faixaPreco[0] || precoBase > faixaPreco[1]) {
         return false;
       }
 
@@ -56,16 +66,18 @@ export default function ServicosContent() {
 
     switch (ordenacao) {
       case 'avaliacao':
-        resultado = [...resultado].sort((a, b) => b.avaliacao - a.avaliacao);
+        resultado = [...resultado].sort((a, b) => (b.avaliacao ?? 0) - (a.avaliacao ?? 0));
         break;
       case 'preco-menor':
-        resultado = [...resultado].sort((a, b) => a.precoBase - b.precoBase);
+        resultado = [...resultado].sort((a, b) => (a.precoBase ?? 0) - (b.precoBase ?? 0));
         break;
       case 'preco-maior':
-        resultado = [...resultado].sort((a, b) => b.precoBase - a.precoBase);
+        resultado = [...resultado].sort((a, b) => (b.precoBase ?? 0) - (a.precoBase ?? 0));
         break;
       default:
-        resultado = [...resultado].sort((a, b) => (b.avaliacao * b.totalAvaliacoes) - (a.avaliacao * a.totalAvaliacoes));
+        resultado = [...resultado].sort(
+          (a, b) => (b.avaliacao ?? 0) * (b.totalAvaliacoes ?? 0) - (a.avaliacao ?? 0) * (a.totalAvaliacoes ?? 0)
+        );
     }
 
     return resultado;
@@ -211,32 +223,51 @@ export default function ServicosContent() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {prestadoresFiltrados.map((prestador) => {
-                const servicosPrestador = (servicos ?? []).filter(s => s.prestadorId === prestador.id);
+                const servicosPrestador = (servicos ?? []).filter(
+                  s => s.prestadorId === prestador.id || !s.prestadorId
+                );
+                const profissoes = prestador.profissoes ?? [];
+                const avaliacao = prestador.avaliacao ?? 0;
+                const totalAvaliacoes = prestador.totalAvaliacoes ?? 0;
+                const precoBase = typeof prestador.precoBase === 'number' ? prestador.precoBase : null;
+                const descricao = prestador.descricao || 'Descrição indisponível.';
+                const endereco = prestador.endereco || 'Endereço não informado';
+                const experiencia = prestador.experiencia
+                  ? `${prestador.experiencia} de experiência`
+                  : 'Experiência a combinar';
 
                 return (
                   <Card key={prestador.id} className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <img
-                          src={prestador.foto}
-                          alt={prestador.nome}
-                          className="w-16 h-16 rounded-full object-cover"
-                        />
+                        {prestador.foto ? (
+                          <img
+                            src={prestador.foto}
+                            alt={prestador.nome}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white text-lg font-semibold">
+                            {prestador.nome.charAt(0)}
+                          </div>
+                        )}
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="text-lg font-semibold">{prestador.nome}</h3>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                <span>{prestador.avaliacao}</span>
-                                <span>({prestador.totalAvaliacoes} avaliações)</span>
+                                <span>{avaliacao.toFixed(1)}</span>
+                                <span>({totalAvaliacoes} avaliações)</span>
                               </div>
                             </div>
-                            <Badge variant="secondary">{formatarMoeda(prestador.precoBase)}</Badge>
+                            <Badge variant="secondary">
+                              {precoBase !== null ? formatarMoeda(precoBase) : 'Consultar'}
+                            </Badge>
                           </div>
 
                           <div className="flex flex-wrap gap-2 my-3">
-                            {prestador.profissoes.map((profissao) => (
+                            {profissoes.map((profissao) => (
                               <Badge key={profissao} variant="outline">
                                 {profissao}
                               </Badge>
@@ -244,17 +275,17 @@ export default function ServicosContent() {
                           </div>
 
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {prestador.descricao}
+                            {descricao}
                           </p>
 
                           <div className="grid grid-cols-1 gap-2 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
-                              {prestador.endereco}
+                              {endereco}
                             </div>
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4" />
-                              {prestador.experiencia} de experiência
+                              {experiencia}
                             </div>
                           </div>
 
@@ -278,7 +309,7 @@ export default function ServicosContent() {
                             <div>
                               <span className="text-xs text-muted-foreground">A partir de</span>
                               <p className="text-lg font-semibold text-primary">
-                                {formatarMoeda(prestador.precoBase)}
+                                {precoBase !== null ? formatarMoeda(precoBase) : 'Consultar'}
                               </p>
                             </div>
                             <Link href={`/prestadores/${prestador.id}`}>

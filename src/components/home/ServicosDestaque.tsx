@@ -12,7 +12,9 @@ import { useGetPrestadoresQuery } from '@/store/api';
 
 export default function ServicosDestaque() {
   const { data: prestadores, isLoading } = useGetPrestadoresQuery();
-  const prestadoresDestaque = (prestadores ?? []).slice(0, 3);
+  const prestadoresDestaque = (prestadores ?? []).filter((prestador) =>
+    prestador.destaque ?? true
+  ).slice(0, 3);
 
   return (
     <section className="py-16">
@@ -42,27 +44,44 @@ export default function ServicosDestaque() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {prestadoresDestaque.map((prestador) => (
-              <Card key={prestador.id} className="group hover:shadow-lg transition-all duration-300">
+            {prestadoresDestaque.map((prestador) => {
+              const profissoes = prestador.profissoes ?? [];
+              const avaliacao = prestador.avaliacao ?? 0;
+              const totalAvaliacoes = prestador.totalAvaliacoes ?? 0;
+              const endereco = prestador.endereco || 'Endereço não informado';
+              const experiencia = prestador.experiencia
+                ? `${prestador.experiencia} de experiência`
+                : 'Experiência a combinar';
+              const precoBase = typeof prestador.precoBase === 'number' ? prestador.precoBase : null;
+              const descricao = prestador.descricao || 'Descrição indisponível.';
+
+              return (
+                <Card key={prestador.id} className="group hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-6">
                   {/* Cabeçalho do Prestador */}
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="relative h-16 w-16 rounded-full overflow-hidden">
-                      <Image
-                        src={prestador.foto}
-                        alt={prestador.nome}
-                        fill
-                        className="object-cover"
-                      />
+                      {prestador.foto ? (
+                        <Image
+                          src={prestador.foto}
+                          alt={prestador.nome}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-primary text-white text-lg font-semibold">
+                          {prestador.nome.charAt(0)}
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{prestador.nome}</h3>
                       <div className="flex items-center space-x-2 mt-1">
                         <div className="flex items-center">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="ml-1 text-sm font-medium">{prestador.avaliacao}</span>
+                          <span className="ml-1 text-sm font-medium">{avaliacao.toFixed(1)}</span>
                           <span className="text-xs text-muted-foreground ml-1">
-                            ({prestador.totalAvaliacoes})
+                            ({totalAvaliacoes})
                           </span>
                         </div>
                       </div>
@@ -71,7 +90,7 @@ export default function ServicosDestaque() {
 
                   {/* Profissões */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {prestador.profissoes.map((profissao) => (
+                    {profissoes.map((profissao) => (
                       <Badge key={profissao} variant="secondary" className="text-xs">
                         {profissao}
                       </Badge>
@@ -80,18 +99,18 @@ export default function ServicosDestaque() {
 
                   {/* Descrição */}
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {prestador.descricao}
+                    {descricao}
                   </p>
 
                   {/* Informações */}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-2" />
-                      {prestador.endereco}
+                      {endereco}
                     </div>
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Clock className="h-4 w-4 mr-2" />
-                      {prestador.experiencia} de experiência
+                      {experiencia}
                     </div>
                   </div>
 
@@ -100,7 +119,7 @@ export default function ServicosDestaque() {
                     <div>
                       <span className="text-sm text-muted-foreground">A partir de</span>
                       <div className="text-lg font-bold text-primary">
-                        {formatarMoeda(prestador.precoBase)}
+                        {precoBase !== null ? formatarMoeda(precoBase) : 'Consultar' }
                       </div>
                     </div>
                   </div>
@@ -116,7 +135,8 @@ export default function ServicosDestaque() {
                   </Link>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
 

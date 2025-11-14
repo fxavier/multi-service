@@ -84,79 +84,98 @@ export default function MerchantsCarousel() {
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${indiceAtual * 100}%)` }}
             >
-              {merchantsDestaque.map((merchant) => (
-                <div key={merchant.id} className="w-full flex-shrink-0">
-                  <Card className="border-0 shadow-lg">
-                    <div className="relative h-64 md:h-80">
-                      <Image
-                        src={merchant.banner}
-                        alt={merchant.nome}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              {merchantsDestaque.map((merchant) => {
+                const banner = merchant.banner;
+                const logo = merchant.logo;
+                const descricao =
+                  merchant.descricao || 'Conheça as ofertas e produtos deste estabelecimento.';
+                const avaliacao = merchant.avaliacao ?? 0;
+                const tipo = merchant.tipo || 'Estabelecimento';
+                const tempoEntrega = merchant.tempoEntrega || undefined;
+                const entregaGratis = merchant.entregaGratis ?? false;
+                const taxaEntrega =
+                  typeof merchant.taxaEntrega === 'number' ? merchant.taxaEntrega : undefined;
+                const slug = merchant.slug || merchant.id;
 
-                      {/* Conteúdo Sobreposto */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-white">
-                            <Image
-                              src={merchant.logo}
-                              alt={merchant.nome}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold">{merchant.nome}</h3>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                <span className="ml-1 text-sm">{merchant.avaliacao}</span>
+                return (
+                  <div key={merchant.id} className="w-full flex-shrink-0">
+                    <Card className="border-0 shadow-lg">
+                      <div className="relative h-64 md:h-80">
+                        {banner ? (
+                          <Image src={banner} alt={merchant.nome} fill className="object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-primary/10 to-background" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+                        {/* Conteúdo Sobreposto */}
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                          <div className="flex items-center space-x-4 mb-4">
+                            <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-white">
+                              {logo ? (
+                                <Image src={logo} alt={merchant.nome} fill className="object-cover" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-primary text-lg font-semibold">
+                                  {merchant.nome.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="text-2xl font-bold">{merchant.nome}</h3>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  <span className="ml-1 text-sm">{avaliacao.toFixed(1)}</span>
+                                </div>
+                                <Badge variant="secondary" className="text-xs">
+                                  {tipo}
+                                </Badge>
                               </div>
-                              <Badge variant="secondary" className="text-xs">
-                                {merchant.tipo}
-                              </Badge>
                             </div>
                           </div>
+
+                          <p className="text-sm mb-4 opacity-90">{descricao}</p>
+
+                          <div className="flex flex-wrap items-center gap-4 mb-4">
+                            {tempoEntrega && (
+                              <div className="flex items-center text-sm">
+                                <Clock className="h-4 w-4 mr-1" />
+                                {tempoEntrega}
+                              </div>
+                            )}
+                            {entregaGratis ? (
+                              <Badge variant="default" className="bg-green-600">
+                                <Truck className="h-3 w-3 mr-1" />
+                                Entrega Grátis
+                              </Badge>
+                            ) : taxaEntrega !== undefined ? (
+                              <div className="flex items-center text-sm">
+                                <Truck className="h-4 w-4 mr-1" />
+                                {formatarMoeda(taxaEntrega)}
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-sm">
+                                <Truck className="h-4 w-4 mr-1" />
+                                Consultar
+                              </div>
+                            )}
+                          </div>
+
+                          <Link href={`/merchants/${slug}`}>
+                            <Button
+                              size="lg"
+                              className="w-full md:w-auto"
+                              style={{ backgroundColor: '#FF6900', borderColor: '#FF6900' }}
+                            >
+                              Ver Produtos
+                            </Button>
+                          </Link>
                         </div>
-
-                        <p className="text-sm mb-4 opacity-90">{merchant.descricao}</p>
-
-                        <div className="flex flex-wrap items-center gap-4 mb-4">
-                          {merchant.tempoEntrega && (
-                            <div className="flex items-center text-sm">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {merchant.tempoEntrega}
-                            </div>
-                          )}
-                          {merchant.entregaGratis ? (
-                            <Badge variant="default" className="bg-green-600">
-                              <Truck className="h-3 w-3 mr-1" />
-                              Entrega Grátis
-                            </Badge>
-                          ) : merchant.taxaEntrega && (
-                            <div className="flex items-center text-sm">
-                              <Truck className="h-4 w-4 mr-1" />
-                              {formatarMoeda(merchant.taxaEntrega)}
-                            </div>
-                          )}
-                        </div>
-
-                        <Link href={`/merchants/${merchant.slug}`}>
-                          <Button
-                            size="lg"
-                            className="w-full md:w-auto"
-                            style={{ backgroundColor: '#FF6900', borderColor: '#FF6900' }}
-                          >
-                            Ver Produtos
-                          </Button>
-                        </Link>
                       </div>
-                    </div>
-                  </Card>
-                </div>
-              ))}
+                    </Card>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

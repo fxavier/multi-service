@@ -3,68 +3,69 @@ export interface Merchant {
   id: string;
   nome: string;
   slug: string;
-  logo: string;
-  banner: string;
-  descricao: string;
-  tipo: 'loja' | 'farmacia' | 'restaurante' | 'petshop' | 'outros';
-  avaliacao: number;
-  totalAvaliacoes: number;
-  endereco: string;
-  telefone: string;
-  email: string;
-  horarioFuncionamento: string;
+  tipo: string;
+  destaque?: boolean;
+  ativo?: boolean;
+  avaliacao?: number;
+  totalAvaliacoes?: number;
+  descricao?: string;
+  logo?: string;
+  banner?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+  horarioFuncionamento?: string;
   tempoEntrega?: string;
   taxaEntrega?: number;
   entregaGratis?: boolean;
-  destaque: boolean;
-  ativo: boolean;
 }
 
 export interface Categoria {
   id: string;
   nome: string;
-  icone: string;
-  merchantId: string;
+  icone?: string;
+  merchantId?: string;
 }
 
 export interface Produto {
   id: string;
   nome: string;
-  descricao: string;
   preco: number;
+  disponivel?: boolean;
+  descricao?: string;
   precoPromocional?: number;
-  imagem: string;
-  categoria: string;
-  merchantId: string;
-  disponivel: boolean;
+  imagem?: string;
+  categoria?: string;
+  merchantId?: string;
   tempoPreparo?: string;
 }
 
 export interface PrestadorServico {
   id: string;
   nome: string;
-  foto: string;
-  profissoes: string[];
-  avaliacao: number;
-  totalAvaliacoes: number;
-  endereco: string;
-  telefone: string;
-  email: string;
-  descricao: string;
-  experiencia: string;
-  disponibilidade: string[];
-  precoBase: number;
-  galeria: string[];
+  foto?: string;
+  profissoes?: string[];
+  avaliacao?: number;
+  totalAvaliacoes?: number;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+  descricao?: string;
+  experiencia?: string;
+  disponibilidade?: string[];
+  precoBase?: number;
+  galeria?: string[];
+  destaque?: boolean;
 }
 
 export interface Servico {
   id: string;
   nome: string;
-  descricao: string;
   preco: number;
-  duracao: string;
-  prestadorId: string;
-  categoria: string;
+  descricao?: string;
+  duracao?: string;
+  prestadorId?: string;
+  categoria?: string;
 }
 
 export interface ItemCarrinho {
